@@ -20,8 +20,12 @@ const C = {
   white: '#FFFFFF',
 }
 
-export default function CustomerPortal() {
-  const { user } = useAuth()
+export default function CustomerPortal({
+  setPage,
+  profile,
+   wishlist
+}) {
+ const { user, logout } = useAuth()
 
   return (
     <div
@@ -77,39 +81,160 @@ export default function CustomerPortal() {
 </button>
 
   <div
+  style={{
+    display: 'flex',
+    flexDirection: 'column',
+    flex: 1,
+    height: '100%',
+  }}
+>
+  {/* Customer Profile */}
+<div
+  style={{
+    textAlign: 'center',
+    paddingBottom: '20px',
+    borderBottom: '1px solid rgba(255,255,255,.12)',
+    marginBottom: '20px',
+  }}
+>
+  <div
     style={{
+      width: '70px',
+      height: '70px',
+      borderRadius: '50%',
+      background: '#A61B1B',
+      color: '#fff',
       display: 'flex',
-      flexDirection: 'column',
-      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '28px',
+      fontWeight: '700',
+      margin: '0 auto 12px',
     }}
   >
+    C
+  </div>
+
+  <h3
+    style={{
+      margin: 0,
+      fontSize: '18px',
+      color: '#fff',
+    }}
+  >
+    Customer
+  </h3>
+
+  <p
+    style={{
+      margin: '4px 0 0',
+      fontSize: '13px',
+      color: 'rgba(255,255,255,.7)',
+    }}
+  >
+    customer@gmail.com
+  </p>
+</div>
     <button className="menu-btn">
   <FaTachometerAlt size={16} /> Dashboard
 </button>
 
-<button className="menu-btn">
+<button
+  className="menu-btn"
+  onClick={() => setPage('orders')}
+>
   <FaBox size={16} /> My Orders
 </button>
 
-<button className="menu-btn">
+<button
+  className="menu-btn"
+  onClick={() => setPage('wishlist')}
+>
   <FaHeart size={16} /> Wishlist
 </button>
 
-<button className="menu-btn">
+<button
+  className="menu-btn"
+  onClick={() => setPage('addresses')}
+>
   <FaHome size={16} /> Addresses
 </button>
 
-<button className="menu-btn">
+<button
+  className="menu-btn"
+  onClick={() => setPage('settings')}
+>
   <FaCog size={16} /> Settings
 </button>
-    <hr
-      style={{
-        borderColor: 'rgba(255,255,255,.1)',
-       margin: '16px 0',
-      }}
-    />
+   
 
-    <button className="menu-btn">↪ Logout</button>
+
+
+
+<div
+  style={{
+    background: 'rgba(255,255,255,.08)',
+    borderRadius: '12px',
+    padding: '14px',
+    marginBottom: '20px',
+  }}
+>
+  <div
+    style={{
+      fontSize: '13px',
+      color: '#E8C97A',
+      marginBottom: '6px',
+    }}
+  >
+    ⭐ Reward Points
+  </div>
+
+  <div
+    style={{
+      fontSize: '24px',
+      fontWeight: '700',
+      color: '#fff',
+    }}
+  >
+    250
+  </div>
+
+  <div
+    style={{
+      fontSize: '12px',
+      color: 'rgba(255,255,255,.7)',
+    }}
+  >
+    Available Points
+  </div>
+</div>
+
+<button
+  className="menu-btn"
+  onClick={() => setPage('offers')}
+>
+  🔔 Notifications
+</button>
+
+<button
+  className="menu-btn"
+  onClick={() => setPage('support')}
+>
+  🎧 Help & Support
+</button>
+
+{/* Push only Logout to bottom */}
+<div style={{ marginTop: 'auto' }}>
+  <button
+    className="menu-btn"
+    onClick={() => {
+      logout()
+      setPage('home')
+    }}
+  >
+    🚪 Logout
+  </button>
+</div>
   </div>
 </div>
 
@@ -154,13 +279,15 @@ export default function CustomerPortal() {
  title="Total Orders"
  value="12"
  subtitle="View all orders"
+ onClick={() => setPage('orders')}
 />
 
 <DashboardCard
  icon={<FaHeart size={22} color="#ff4f81" />}
  title="Wishlist Items"
- value="8"
+ value={wishlist.length}
  subtitle="View wishlist"
+ onClick={() => setPage('wishlist')}
 />
 
 <DashboardCard
@@ -168,6 +295,7 @@ export default function CustomerPortal() {
  title="Addresses"
  value="2"
  subtitle="Manage addresses"
+ onClick={() => setPage('addresses')}
 />
 
 <DashboardCard
@@ -214,15 +342,19 @@ export default function CustomerPortal() {
       Recent Orders
     </h2>
 
-    <span
-      style={{
-        color: '#8B1A1A',
-        fontWeight: '600',
-        cursor: 'pointer',
-      }}
-    >
-      View All Orders →
-    </span>
+   <button
+  onClick={() => setPage('orders')}
+  style={{
+    background: 'none',
+    border: 'none',
+    color: '#8B1A1A',
+    fontSize: '18px',
+    fontWeight: '600',
+    cursor: 'pointer',
+  }}
+>
+  View All Orders →
+</button>
   </div>
 
     {[
@@ -376,13 +508,15 @@ export default function CustomerPortal() {
   </h2>
 
   <span
-    style={{
-      color:'#8B1A1A',
-      cursor:'pointer',
-    }}
-  >
-    Edit Profile
-  </span>
+  onClick={() => setPage('editProfile')}
+  style={{
+    color: '#8B1A1A',
+    cursor: 'pointer',
+    fontWeight: '600',
+  }}
+>
+  Edit Profile
+</span>
 </div>
   <div
     style={{
@@ -399,14 +533,12 @@ fontSize: '22px',
       marginBottom: '20px',
     }}
   >
-    {user?.name?.charAt(0)}
+   {profile?.name?.charAt(0)}
   </div>
 
-  <h3>{user?.name}</h3>
-
-  <p>{user?.email}</p>
-
-  <p>{user?.phone || '+91 XXXXX XXXXX'}</p>
+  <h3>{profile?.name}</h3>
+<p>{profile?.email}</p>
+<p>{profile?.phone}</p>
 </div>
 <div
   style={{
@@ -425,27 +557,41 @@ fontSize: '22px',
     Quick Actions
   </h2>
 
-  <div style={{ padding: '15px 0' }}>
-    🛒 Browse Products
-  </div>
+ <div
+  onClick={() => setPage('products')}
+  style={{
+    cursor: 'pointer',
+  }}
+>
+  🛒 Browse Products
+</div>
 
   <hr />
 
-  <div style={{ padding: '15px 0' }}>
-    🚚 Track Order
-  </div>
+  <div
+  style={{ padding: '15px 0', cursor: 'pointer' }}
+  onClick={() => setPage('trackorder')}
+>
+  🚚 Track Order
+</div>
 
   <hr />
 
-  <div style={{ padding: '15px 0' }}>
-    🎧 Help & Support
-  </div>
+ <div
+  style={{ padding: '15px 0', cursor: 'pointer' }}
+  onClick={() => setPage('support')}
+>
+  🎧 Help & Support
+</div>
 
   <hr />
 
-  <div style={{ padding: '15px 0' }}>
-    🎁 Offers & Coupons
-  </div>
+ <div
+  style={{ padding: '15px 0', cursor: 'pointer' }}
+  onClick={() => setPage('offers')}
+>
+  🎁 Offers & Coupons
+</div>
 </div>
             </div>
           </div>
@@ -530,16 +676,18 @@ fontSize: '22px',
     </div>
   )
 }
-
 function DashboardCard({
   icon,
   title,
   value,
-  subtitle
+  subtitle,
+  onClick
 }) {
   return (
     <div
-      style={{
+  onClick={onClick}
+  style={{
+    cursor: 'pointer',
         background: '#fff',
         border: '1px solid #eee',
         borderRadius: '16px',

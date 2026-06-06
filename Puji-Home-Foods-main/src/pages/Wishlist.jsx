@@ -166,8 +166,26 @@ export default function Wishlist({ setPage, onCheckout }) {
   // ── Main wishlist page ──
   return (
     <div style={{ minHeight: '100vh', background: '#FAF7F2', paddingTop: 80 }}>
+      
       {/* Header */}
       <div style={{ background: `linear-gradient(135deg,${C.maroon},#5C0000)`, padding: '3rem 2rem 2.5rem', textAlign: 'center', position: 'relative' }}>
+        <button
+  onClick={() => setPage('portal')}
+  style={{
+    position: 'absolute',
+    left: '30px',
+    top: '30px',
+    background: '#fff',
+    color: C.maroon,
+    border: 'none',
+    padding: '10px 18px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontWeight: '600',
+  }}
+>
+  ← Back to Portal
+</button>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg,transparent,${C.gold},transparent)` }} />
         <p style={{ fontSize: '.72rem', letterSpacing: '5px', textTransform: 'uppercase', color: C.gold, fontWeight: 800, marginBottom: 8 }}>My Collection</p>
         <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(1.8rem,4vw,2.8rem)', fontWeight: 900, marginBottom: 6 }}>

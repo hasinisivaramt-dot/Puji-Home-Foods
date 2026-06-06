@@ -16,6 +16,7 @@ import Products from './pages/Products'
 import Wishlist from './pages/Wishlist'
 import CustomerPortal from './pages/CustomerPortal'
 import AdminDashboard from './admin/AdminDashboard'
+import EditProfile from './pages/EditProfile'
 
 // ── Color tokens ─────────────────────────────────────────────────
 const C = {
@@ -988,6 +989,12 @@ function AppInner({ page, setPage }) {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [searchTerm, setSearchTerm] = useState('')
   const [lastOrder, setLastOrder] = useState({ name: '', amount: 0 })
+  const [profile, setProfile] = useState({
+  name: 'Customer',
+  email: 'customer@gmail.com',
+  phone: '9876543210',
+  location: 'Hyderabad',
+})
   const { user, logout, openAuth } = useAuth()
   const { clearCart, grandTotal } = useCart()
 
@@ -1012,7 +1019,7 @@ function AppInner({ page, setPage }) {
 
   const handleSuccess = (formData) => { clearCart(); setPage('success'); setLastOrder({ name: formData.name, amount: grandTotal }) }
   const handleFailure = () => { setPage('failure') }
-
+const { wishlist } = useWishlist()
   // ── Cart page ──
   if (page === 'cart') {
     return (
@@ -1095,11 +1102,34 @@ function AppInner({ page, setPage }) {
     return (
       <>
         <Navbar page={page} setPage={setPage} onCartClick={() => setPage('cart')} />
-        <CustomerPortal />
+       <CustomerPortal
+  setPage={setPage}
+  profile={profile}
+  wishlist={wishlist}
+/>
         <BackTop />
       </>
     )
   }
+  if (page === 'editProfile') {
+  return (
+    <>
+      <Navbar
+        page={page}
+        setPage={setPage}
+        onCartClick={() => setPage('cart')}
+      />
+
+      <EditProfile
+        setPage={setPage}
+        profile={profile}
+        setProfile={setProfile}
+      />
+
+      <BackTop />
+    </>
+  )
+}
 
   // ── Products page ──
   if (page === 'products') {
@@ -1116,6 +1146,1076 @@ function AppInner({ page, setPage }) {
       </>
     )
   }
+  if (page === 'orders') {
+  return (
+    <>
+      <Navbar
+        onCartClick={() => setPage('cart')}
+        setPage={setPage}
+      />
+
+      <div
+  style={{
+    minHeight: '100vh',
+    padding: '120px 40px',
+    background: '#F5ECD7',
+  }}
+>
+  <div
+    style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '25px',
+    }}
+  >
+    <h1 style={{ color: '#3D0000' }}>
+      My Orders
+    </h1>
+
+    <button
+      onClick={() => setPage('portal')}
+      style={{
+        background: '#8B1A1A',
+        color: '#fff',
+        border: 'none',
+        padding: '10px 18px',
+        borderRadius: '8px',
+        cursor: 'pointer',
+      }}
+    >
+      ← Back to Portal
+    </button>
+  </div>
+
+  {[
+    {
+      id: 'PHF1024',
+      product: 'Boneless Chicken Pickle 1kg',
+      qty: 1,
+      amount: '₹1,200',
+      date: '29 May 2026',
+      status: 'Delivered',
+      image: '/images/bone chicken pickle.jpg',
+    },
+    {
+      id: 'PHF1023',
+      product: 'Prawns Pickle 500g',
+      qty: 2,
+      amount: '₹1,600',
+      date: '27 May 2026',
+      status: 'Shipped',
+      image: '/images/prawnspickle.webp',
+    },
+    {
+      id: 'PHF1022',
+      product: 'Mutton Pickle 1kg',
+      qty: 1,
+      amount: '₹1,350',
+      date: '25 May 2026',
+      status: 'Processing',
+      image: '/images/MuttonPickle.jpg',
+    },
+  ].map((order) => (
+    <div
+      key={order.id}
+      style={{
+        background: '#fff',
+        borderRadius: '16px',
+        padding: '20px',
+        marginBottom: '20px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        boxShadow: '0 4px 15px rgba(0,0,0,.08)',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '15px',
+        }}
+      >
+        <img
+          src={order.image}
+          alt={order.product}
+          style={{
+            width: '90px',
+            height: '90px',
+            borderRadius: '12px',
+            objectFit: 'cover',
+          }}
+        />
+
+        <div>
+          <h3 style={{ margin: '0 0 8px' }}>
+            {order.product}
+          </h3>
+
+          <p style={{ margin: '0 0 5px' }}>
+            Order ID: {order.id}
+          </p>
+
+          <p style={{ margin: '0 0 5px' }}>
+            Qty: {order.qty}
+          </p>
+
+          <p style={{ margin: 0 }}>
+            {order.amount}
+          </p>
+        </div>
+      </div>
+
+      <div
+        style={{
+          textAlign: 'right',
+        }}
+      >
+        <p
+          style={{
+            marginBottom: '10px',
+            color: '#666',
+          }}
+        >
+          {order.date}
+        </p>
+
+        <span
+          style={{
+            padding: '8px 14px',
+            borderRadius: '20px',
+            background:
+              order.status === 'Delivered'
+                ? '#EAF7EC'
+                : order.status === 'Shipped'
+                ? '#FFF3DD'
+                : '#E8F0FF',
+            color:
+              order.status === 'Delivered'
+                ? '#2E8B57'
+                : order.status === 'Shipped'
+                ? '#C17A00'
+                : '#2A62D5',
+          }}
+        >
+          {order.status}
+        </span>
+      </div>
+    </div>
+  ))}
+</div>
+    </>
+  )
+}
+if (page === 'wishlist') {
+  const { wishlist, removeFromWishlist } = useWishlist()
+
+  return (
+    <>
+      <Navbar
+        onCartClick={() => setPage('cart')}
+        setPage={setPage}
+      />
+
+      <div
+        style={{
+          minHeight: '100vh',
+          padding: '120px 40px',
+          background: '#F5ECD7',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '30px',
+          }}
+        >
+          <h1
+            style={{
+              color: '#3D0000',
+            }}
+          >
+            My Wishlist ❤️
+          </h1>
+          
+
+          <button
+            onClick={() => setPage('portal')}
+            style={{
+              background: '#8B1A1A',
+              color: '#fff',
+              border: 'none',
+              padding: '12px 20px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+            }}
+          >
+            ← Back to Portal
+          </button>
+        </div>
+
+        {wishlist.length === 0 ? (
+          <div
+            style={{
+              background: '#fff',
+              padding: '50px',
+              borderRadius: '16px',
+              textAlign: 'center',
+            }}
+          >
+            <h2>Your Wishlist is Empty 💔</h2>
+
+            <p>
+              Save your favorite pickles and snacks here.
+            </p>
+
+            <button
+              onClick={() => setPage('products')}
+              style={{
+                background: '#8B1A1A',
+                color: '#fff',
+                border: 'none',
+                padding: '12px 20px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+              }}
+            >
+              Browse Products
+            </button>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns:
+                'repeat(auto-fill,minmax(280px,1fr))',
+              gap: '20px',
+            }}
+          >
+            {wishlist.map((product) => (
+              <div
+                key={product.id}
+                style={{
+                  background: '#fff',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  boxShadow:
+                    '0 4px 15px rgba(0,0,0,.08)',
+                }}
+              >
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  style={{
+                    width: '100%',
+                    height: '220px',
+                    objectFit: 'cover',
+                  }}
+                />
+
+                <div
+                  style={{
+                    padding: '18px',
+                  }}
+                >
+                  <h3>{product.name}</h3>
+
+                  <p
+                    style={{
+                      color: '#8B1A1A',
+                      fontWeight: '700',
+                    }}
+                  >
+                    ₹{product.basePrice}
+                  </p>
+
+                  <button
+                    onClick={() =>
+                      removeFromWishlist(product.id)
+                    }
+                    style={{
+                      width: '100%',
+                      background: '#8B1A1A',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Remove ❤️
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+if (page === 'addresses') {
+  return (
+    <>
+      <Navbar onCartClick={() => setPage('cart')} />
+
+      <div
+        style={{
+          minHeight: '100vh',
+          padding: '120px 40px',
+          background: '#F5ECD7',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '25px',
+          }}
+        >
+          <h1 style={{ color: '#3D0000' }}>
+            Saved Addresses
+          </h1>
+
+          <button
+            onClick={() => setPage('portal')}
+            style={{
+              background: '#8B1A1A',
+              color: '#fff',
+              border: 'none',
+              padding: '10px 18px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+            }}
+          >
+            ← Back to Portal
+          </button>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit,minmax(350px,1fr))',
+            gap: '20px',
+          }}
+        >
+          {/* Home Address */}
+          <div
+            style={{
+              background: '#fff',
+              padding: '25px',
+              borderRadius: '16px',
+              boxShadow: '0 4px 15px rgba(0,0,0,.08)',
+            }}
+          >
+            <h3>🏠 Home</h3>
+
+            <p><strong>Sneha</strong></p>
+
+            <p>
+              H.No 1-23,
+              Near Bus Stand,
+              Siddipet,
+              Telangana - 502103
+            </p>
+
+            <p>📞 +91 98765 43210</p>
+
+            <div
+              style={{
+                display: 'flex',
+                gap: '10px',
+                marginTop: '15px',
+              }}
+            >
+              <button>Edit</button>
+              <button>Delete</button>
+            </div>
+          </div>
+
+          {/* Office Address */}
+          <div
+            style={{
+              background: '#fff',
+              padding: '25px',
+              borderRadius: '16px',
+              boxShadow: '0 4px 15px rgba(0,0,0,.08)',
+            }}
+          >
+            <h3>🏢 Office</h3>
+
+            <p><strong>Sneha</strong></p>
+
+            <p>
+              HITEC City,
+              Hyderabad,
+              Telangana - 500081
+            </p>
+
+            <p>📞 +91 98765 43210</p>
+
+            <div
+              style={{
+                display: 'flex',
+                gap: '10px',
+                marginTop: '15px',
+              }}
+            >
+              <button>Edit</button>
+              <button>Delete</button>
+            </div>
+          </div>
+        </div>
+
+        <button
+          style={{
+            marginTop: '30px',
+            background: '#8B1A1A',
+            color: '#fff',
+            border: 'none',
+            padding: '12px 22px',
+            borderRadius: '10px',
+            cursor: 'pointer',
+          }}
+        >
+          + Add New Address
+        </button>
+      </div>
+    </>
+  )
+}
+if (page === 'settings') {
+  return (
+    <>
+      <Navbar onCartClick={() => setPage('cart')} />
+
+      <div
+        style={{
+          minHeight: '100vh',
+          padding: '120px 40px',
+          background: '#F5ECD7',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: '1100px',
+            margin: '0 auto',
+          }}
+        >
+          <h1
+            style={{
+              color: '#5C0000',
+              marginBottom: '10px',
+            }}
+          >
+            Account Settings
+          </h1>
+
+          <p
+            style={{
+              color: '#666',
+              marginBottom: '30px',
+            }}
+          >
+            Manage your profile, security and preferences.
+          </p>
+
+          {/* Profile Settings */}
+          <div className="settings-card">
+            <h2>👤 Profile Information</h2>
+
+            <div className="settings-grid">
+              <input type="text" placeholder="Full Name" />
+
+              <input type="email" placeholder="Email Address" />
+
+              <input type="tel" placeholder="Phone Number" />
+            </div>
+
+            <button className="save-btn">
+              Save Changes
+            </button>
+          </div>
+
+          {/* Password */}
+          <div className="settings-card">
+            <h2>🔒 Change Password</h2>
+
+            <div className="settings-grid">
+              <input type="password" placeholder="Current Password" />
+
+              <input type="password" placeholder="New Password" />
+
+              <input type="password" placeholder="Confirm Password" />
+            </div>
+
+            <button className="save-btn">
+              Update Password
+            </button>
+          </div>
+
+          {/* Notifications */}
+          <div className="settings-card">
+            <h2>🔔 Notifications</h2>
+
+            <label>
+              <input type="checkbox" defaultChecked />
+              Order Updates
+            </label>
+
+            <label>
+              <input type="checkbox" defaultChecked />
+              Promotional Offers
+            </label>
+
+            <label>
+              <input type="checkbox" />
+              Newsletter
+            </label>
+          </div>
+
+          {/* Account Actions */}
+          <div className="settings-card">
+            <h2>⚠️ Account Actions</h2>
+
+            <button
+              style={{
+                background: '#8B0000',
+                color: '#fff',
+                border: 'none',
+                padding: '12px 20px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+              }}
+            >
+              Logout
+            </button>
+          </div>
+
+          <button
+            onClick={() => setPage('portal')}
+            style={{
+              marginTop: '25px',
+              background: '#5C0000',
+              color: '#fff',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+            }}
+          >
+            ← Back to Portal
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+if (page === 'trackorder') {
+  return (
+    <>
+      <Navbar onCartClick={() => setPage('cart')} />
+
+      <div
+        style={{
+          minHeight: '100vh',
+          padding: '120px 40px',
+          background: '#F5ECD7',
+        }}
+      >
+        <div
+  style={{
+    maxWidth: '900px',
+    margin: '0 auto 30px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  }}
+>
+  <h1
+    style={{
+      margin: 0,
+      color: '#3D0000',
+    }}
+  >
+    Track Order
+  </h1>
+
+  <button
+    onClick={() => setPage('portal')}
+    style={{
+      background: '#8B1A1A',
+      color: '#fff',
+      border: 'none',
+      padding: '12px 20px',
+      borderRadius: '8px',
+      cursor: 'pointer',
+      fontWeight: '600',
+    }}
+  >
+    ← Back to Portal
+  </button>
+</div>
+        
+
+        <div
+  style={{
+    maxWidth: '900px',
+    margin: '0 auto',
+    background: '#fff',
+    borderRadius: '20px',
+    overflow: 'hidden',
+    boxShadow: '0 10px 30px rgba(0,0,0,.1)',
+  }}
+>
+  {/* Header */}
+  <div
+    style={{
+      background: 'linear-gradient(135deg,#8B1A1A,#3D0000)',
+      color: '#fff',
+      padding: '25px',
+    }}
+  >
+    <h2 style={{ margin: 0 }}>
+      Order #PHF1023
+    </h2>
+
+    <p style={{ marginTop: '10px' }}>
+      Prawns Pickle 500g
+    </p>
+
+    <p>
+      Expected Delivery: 7 June 2026
+    </p>
+  </div>
+
+  {/* Progress */}
+  <div
+    style={{
+      padding: '40px',
+    }}
+  >
+    <h3
+      style={{
+        color: '#3D0000',
+        marginBottom: '30px',
+      }}
+    >
+      Delivery Progress
+    </h3>
+
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '40px',
+      }}
+    >
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '30px' }}>✅</div>
+        <p>Placed</p>
+      </div>
+
+      <div style={{ flex: 1, height: '4px', background: 'green' }} />
+
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '30px' }}>✅</div>
+        <p>Packed</p>
+      </div>
+
+      <div style={{ flex: 1, height: '4px', background: 'green' }} />
+
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '30px' }}>✅</div>
+        <p>Shipped</p>
+      </div>
+
+      <div style={{ flex: 1, height: '4px', background: '#C9A84C' }} />
+
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '30px' }}>🚚</div>
+        <p>Out for Delivery</p>
+      </div>
+
+      <div style={{ flex: 1, height: '4px', background: '#ddd' }} />
+
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '30px' }}>📦</div>
+        <p>Delivered</p>
+      </div>
+    </div>
+
+    {/* Address */}
+    <div
+      style={{
+        background: '#F8F8F8',
+        padding: '20px',
+        borderRadius: '12px',
+        marginBottom: '20px',
+      }}
+    >
+      <h4>Delivery Address</h4>
+
+      <p>
+        Sneha <br />
+        Siddipet, Telangana <br />
+        502103
+      </p>
+    </div>
+
+    {/* Support */}
+    <div
+      style={{
+        background: '#FFF8E8',
+        padding: '20px',
+        borderRadius: '12px',
+      }}
+    >
+      <h4>Need Help?</h4>
+
+      <p>
+        Contact our support team regarding this order.
+      </p>
+
+      <button
+        style={{
+          background: '#8B1A1A',
+          color: '#fff',
+          border: 'none',
+          padding: '10px 20px',
+          borderRadius: '8px',
+          cursor: 'pointer',
+        }}
+      >
+        Contact Support
+      </button>
+    </div>
+  </div>
+</div>
+
+        <br />
+
+        
+      </div>
+    </>
+  )
+}
+if (page === 'support') {
+  return (
+    <>
+      <Navbar onCartClick={() => setPage('cart')} />
+
+      <div
+        style={{
+          minHeight: '100vh',
+          padding: '120px 40px',
+          background: '#F5ECD7',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: '1000px',
+            margin: '0 auto',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '30px',
+            }}
+          >
+            <h1 style={{ color: '#3D0000' }}>
+              Help & Support
+            </h1>
+
+            <button
+              onClick={() => setPage('portal')}
+              style={{
+                background: '#8B1A1A',
+                color: '#fff',
+                border: 'none',
+                padding: '12px 20px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+              }}
+            >
+              ← Back to Portal
+            </button>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit,minmax(250px,1fr))',
+              gap: '20px',
+              marginBottom: '30px',
+            }}
+          >
+            <div
+              style={{
+                background: '#fff',
+                padding: '25px',
+                borderRadius: '16px',
+                boxShadow: '0 4px 15px rgba(0,0,0,.08)',
+              }}
+            >
+              <h2>📞 Call Us</h2>
+              <p>+91 98765 43210</p>
+            </div>
+
+            <div
+              style={{
+                background: '#fff',
+                padding: '25px',
+                borderRadius: '16px',
+                boxShadow: '0 4px 15px rgba(0,0,0,.08)',
+              }}
+            >
+              <h2>📧 Email</h2>
+              <p>support@pujihomefoods.com</p>
+            </div>
+
+            <div
+              style={{
+                background: '#fff',
+                padding: '25px',
+                borderRadius: '16px',
+                boxShadow: '0 4px 15px rgba(0,0,0,.08)',
+              }}
+            >
+              <h2>💬 Live Chat</h2>
+              <p>Available 9 AM - 9 PM</p>
+            </div>
+          </div>
+
+          <div
+            style={{
+              background: '#fff',
+              padding: '30px',
+              borderRadius: '16px',
+              boxShadow: '0 4px 15px rgba(0,0,0,.08)',
+            }}
+          >
+            <h2>❓ Frequently Asked Questions</h2>
+
+            <p><strong>Where is my order?</strong></p>
+            <p>Track your order from the Track Order page.</p>
+
+            <hr />
+
+            <p><strong>How can I cancel my order?</strong></p>
+            <p>Contact support before shipment.</p>
+
+            <hr />
+
+            <p><strong>Do you deliver across India?</strong></p>
+            <p>Yes, we deliver nationwide.</p>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+if (page === 'offers') {
+  return (
+    <>
+      <Navbar onCartClick={() => setPage('cart')} />
+
+      <div
+        style={{
+          minHeight: '100vh',
+          padding: '120px 40px',
+          background:
+  'linear-gradient(135deg,#FFF8E8,#F5ECD7,#FFF3D6)',
+        }}
+      >
+        <div
+  style={{
+    position: 'fixed',
+    top: '120px',
+    left: '50px',
+    fontSize: '50px',
+    opacity: '.08',
+    pointerEvents: 'none',
+  }}
+>
+  🎁
+</div>
+
+<div
+  style={{
+    position: 'fixed',
+    top: '220px',
+    right: '80px',
+    fontSize: '60px',
+    opacity: '.08',
+    pointerEvents: 'none',
+  }}
+>
+  🎉
+</div>
+
+<div
+  style={{
+    position: 'fixed',
+    bottom: '100px',
+    left: '100px',
+    fontSize: '55px',
+    opacity: '.08',
+    pointerEvents: 'none',
+  }}
+>
+  🎊
+</div>
+        <div
+          style={{
+            maxWidth: '1000px',
+            margin: '0 auto',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '30px',
+            }}
+          >
+            <h1 style={{ color: '#3D0000' }}>
+              Offers & Coupons
+            </h1>
+            <div
+  style={{
+    background:
+      'linear-gradient(135deg,#8B1A1A,#3D0000)',
+    color: '#fff',
+    borderRadius: '20px',
+    padding: '40px',
+    marginBottom: '30px',
+    textAlign: 'center',
+    boxShadow: '0 10px 25px rgba(0,0,0,.15)',
+  }}
+>
+  <h1
+    style={{
+      margin: 0,
+      fontSize: '42px',
+    }}
+  >
+    🎉 Exclusive Offers
+  </h1>
+
+  <p
+    style={{
+      marginTop: '15px',
+      fontSize: '18px',
+      color: '#F5ECD7',
+    }}
+  >
+    Save More On Your Favorite Pickles
+  </p>
+</div>
+
+            <button
+              onClick={() => setPage('portal')}
+              style={{
+                background: '#8B1A1A',
+                color: '#fff',
+                border: 'none',
+                padding: '12px 20px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+              }}
+            >
+              ← Back to Portal
+            </button>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))',
+              gap: '20px',
+            }}
+          >
+            {[
+  {
+    code: 'PUJI10',
+    discount: '10% OFF',
+    min: 'Minimum Order ₹999',
+    image: '/images/bone chicken pickle.jpg',
+  },
+  {
+    code: 'FREESHIP',
+    discount: 'FREE DELIVERY',
+    min: 'Minimum Order ₹499',
+    image: '/images/prawnspickle.webp',
+  },
+  {
+    code: 'WELCOME20',
+    discount: '20% OFF',
+    min: 'New Customers',
+    image: '/images/MuttonPickle.jpg',
+  },
+].map((coupon) => (
+              <div
+                key={coupon.code}
+                style={{
+                  background: '#fff',
+                  padding: '25px',
+                  borderRadius: '16px',
+                  boxShadow: '0 8px 25px rgba(0,0,0,.12)',
+transition: 'all .3s ease',
+cursor: 'pointer',
+                }}
+              >
+                <img
+  src={coupon.image}
+  alt={coupon.code}
+  style={{
+    width: '100%',
+    height: '180px',
+    objectFit: 'cover',
+    borderRadius: '12px',
+    marginBottom: '15px',
+  }}
+/>
+                <h2 style={{ color: '#8B1A1A' }}>
+                  {coupon.code}
+                </h2>
+
+                <h3>{coupon.discount}</h3>
+
+                <p>{coupon.min}</p>
+
+                <button
+                  style={{
+                    background: '#8B1A1A',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '10px 18px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Apply Coupon
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
 
   // ── Homepage ──
   return (
