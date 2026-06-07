@@ -744,10 +744,19 @@ function Contact() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' })
   const [sent, setSent] = useState(false)
 
+  // ── UPDATED: opens mailto with pre-filled form data ──
   const handleSubmit = () => {
     if (!form.name || !form.email || !form.message) return
+
+    const subject = encodeURIComponent(`Message from ${form.name} - Puji Home Foods`)
+    const body = encodeURIComponent(
+      `Name: ${form.name}\nEmail: ${form.email}\nPhone: ${form.phone || 'Not provided'}\n\nMessage:\n${form.message}`
+    )
+
+    window.open(`mailto:hello@pujihomefoods.com?subject=${subject}&body=${body}`, '_blank')
+
     setSent(true)
-    setTimeout(() => { setSent(false); setForm({ name:'', email:'', phone:'', message:'' }) }, 3000)
+    setTimeout(() => { setSent(false); setForm({ name: '', email: '', phone: '', message: '' }) }, 3000)
   }
 
   return (
