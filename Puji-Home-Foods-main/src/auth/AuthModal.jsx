@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from './AuthContext'
+import { api } from './AuthContext'
 import { getAdminCode } from '../admin/data/adminCode'
 
 // ── Theme ─────────────────────────────────────────────────────────
@@ -72,24 +73,6 @@ function AuthBtn({ children, onClick, loading, variant = 'primary' }) {
   )
 }
 
-// ── Google Button ─────────────────────────────────────────────────
-function GoogleBtn({ label = 'Continue with Google' }) {
-  const [hov, setHov] = useState(false)
-  return (
-    <button
-      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-      style={{ width: '100%', padding: '10px 0', borderRadius: 50, border: `1.5px solid ${hov ? C.gold : 'rgba(201,168,76,.25)'}`, background: hov ? 'rgba(201,168,76,.06)' : C.white, color: '#3a1a05', fontWeight: 600, fontSize: '.85rem', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, transition: 'all .25s', boxShadow: hov ? `0 0 0 1.5px ${C.gold}` : 'none' }}>
-      <svg width="18" height="18" viewBox="0 0 48 48">
-        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-      </svg>
-      {label}
-    </button>
-  )
-}
-
 // ── Divider ───────────────────────────────────────────────────────
 function Divider() {
   return (
@@ -108,15 +91,26 @@ function Toast({ msg, type }) {
   )
 }
 
+// ── Server Error Banner ───────────────────────────────────────────
+function ErrorBanner({ msg }) {
+  if (!msg) return null
+  return (
+    <div style={{ background: 'rgba(192,57,43,.1)', border: '1px solid rgba(192,57,43,.3)', borderRadius: 10, padding: '10px 14px', marginBottom: '1rem', fontSize: '.82rem', color: '#c0392b', display: 'flex', alignItems: 'center', gap: 8 }}>
+      ⚠ {msg}
+    </div>
+  )
+}
+
 // ══════════════════════════════════════════════════════════════════
-// CUSTOMER AUTH
+// CUSTOMER AUTH  (now with real API calls)
 // ══════════════════════════════════════════════════════════════════
 function CustomerAuth({ onSuccess }) {
-  const [tab, setTab]       = useState('login')
+  const [tab, setTab]         = useState('login')
   const [loading, setLoading] = useState(false)
-  const [toast, setToast]   = useState(null)
+  const [toast, setToast]     = useState(null)
+  const [serverError, setServerError] = useState('')
 
-  const [loginData, setLoginData]     = useState({ emailPhone: '', password: '', remember: false })
+  const [loginData, setLoginData]     = useState({ email: '', password: '' })
   const [loginErrors, setLoginErrors] = useState({})
 
   const [signData, setSignData]   = useState({ name: '', email: '', phone: '', password: '', confirm: '' })
@@ -125,12 +119,18 @@ function CustomerAuth({ onSuccess }) {
   const [forgotEmail, setForgotEmail] = useState('')
   const [forgotError, setForgotError] = useState('')
 
-  const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000) }
+  const showToast = (msg, type = 'success') => {
+    setToast({ msg, type })
+    setTimeout(() => setToast(null), 3000)
+  }
 
+  const clearErrors = () => { setServerError(''); setLoginErrors({}); setSignErrors({}) }
+
+  // ── Validate ──────────────────────────────────────────────────
   const validateLogin = () => {
     const e = {}
-    if (!loginData.emailPhone.trim()) e.emailPhone = 'Email or phone is required'
-    if (!loginData.password)          e.password   = 'Password is required'
+    if (!validateEmail(loginData.email)) e.email    = 'Enter a valid email address'
+    if (!loginData.password)             e.password = 'Password is required'
     return e
   }
 
@@ -144,22 +144,47 @@ function CustomerAuth({ onSuccess }) {
     return e
   }
 
+  // ── Login → real API ──────────────────────────────────────────
   const handleLogin = async () => {
-    const e = validateLogin(); if (Object.keys(e).length) { setLoginErrors(e); return }
+    const e = validateLogin()
+    if (Object.keys(e).length) { setLoginErrors(e); return }
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1200))
-    setLoading(false)
-    onSuccess({ name: 'Customer', email: loginData.emailPhone, role: 'customer' })
-    showToast('Welcome back! 🎉')
+    setServerError('')
+    try {
+      const data = await api.login({ email: loginData.email, password: loginData.password })
+      // data = { token, user: { id, name, email, phone, address } }
+      showToast(`Welcome back, ${data.user.name}! 🎉`)
+      setTimeout(() => onSuccess({ ...data.user, role: 'customer' }, data.token), 800)
+    } catch (err) {
+      setServerError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
+  // ── Signup → real API ─────────────────────────────────────────
   const handleSignup = async () => {
-    const e = validateSignup(); if (Object.keys(e).length) { setSignErrors(e); return }
+    const e = validateSignup()
+    if (Object.keys(e).length) { setSignErrors(e); return }
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1400))
-    setLoading(false)
-    onSuccess({ name: signData.name, email: signData.email, phone: signData.phone, role: 'customer' })
-    showToast(`Welcome to Puji, ${signData.name}! 🎉`)
+    setServerError('')
+    try {
+      // Register the user
+      await api.register({
+        name:     signData.name,
+        email:    signData.email,
+        phone:    signData.phone,
+        password: signData.password,
+      })
+      // Auto-login after register
+      const data = await api.login({ email: signData.email, password: signData.password })
+      showToast(`Welcome to Puji, ${data.user.name}! 🎉`)
+      setTimeout(() => onSuccess({ ...data.user, role: 'customer' }, data.token), 800)
+    } catch (err) {
+      setServerError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleForgot = async () => {
@@ -178,7 +203,8 @@ function CustomerAuth({ onSuccess }) {
       {tab !== 'forgot' && (
         <div style={{ display: 'flex', background: 'rgba(201,168,76,.1)', borderRadius: 50, padding: 4, marginBottom: '1.6rem', border: '1px solid rgba(201,168,76,.2)' }}>
           {['login', 'signup'].map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '8px 0', borderRadius: 50, border: 'none', background: tab === t ? `linear-gradient(135deg,${C.crimson},${C.darkRed})` : 'transparent', color: tab === t ? C.white : C.crimson, fontWeight: 700, fontSize: '.82rem', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all .3s', boxShadow: tab === t ? '0 4px 12px rgba(107,15,15,.3)' : 'none', textTransform: 'capitalize' }}>
+            <button key={t} onClick={() => { setTab(t); clearErrors() }}
+              style={{ flex: 1, padding: '8px 0', borderRadius: 50, border: 'none', background: tab === t ? `linear-gradient(135deg,${C.crimson},${C.darkRed})` : 'transparent', color: tab === t ? C.white : C.crimson, fontWeight: 700, fontSize: '.82rem', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all .3s', boxShadow: tab === t ? '0 4px 12px rgba(107,15,15,.3)' : 'none', textTransform: 'capitalize' }}>
               {t === 'login' ? 'Sign In' : 'Create Account'}
             </button>
           ))}
@@ -188,26 +214,27 @@ function CustomerAuth({ onSuccess }) {
       {/* LOGIN */}
       {tab === 'login' && (
         <div style={{ animation: 'fadeUp .3s ease both' }}>
-          <Input label="Email or Phone Number" value={loginData.emailPhone} onChange={v => setLoginData(d => ({ ...d, emailPhone: v }))} error={loginErrors.emailPhone} placeholder="email@example.com or 9876543210" required />
-          <PasswordInput label="Password" value={loginData.password} onChange={v => setLoginData(d => ({ ...d, password: v }))} error={loginErrors.password} placeholder="Enter your password" required />
+          <ErrorBanner msg={serverError} />
+          <Input label="Email Address" type="email" value={loginData.email}
+            onChange={v => setLoginData(d => ({ ...d, email: v }))}
+            error={loginErrors.email} placeholder="email@example.com" required />
+          <PasswordInput label="Password" value={loginData.password}
+            onChange={v => setLoginData(d => ({ ...d, password: v }))}
+            error={loginErrors.password} placeholder="Enter your password" required />
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.4rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontSize: '.8rem', color: '#7a4020', fontWeight: 500, userSelect: 'none' }}>
-              <input type="checkbox" checked={loginData.remember} onChange={e => setLoginData(d => ({ ...d, remember: e.target.checked }))} style={{ accentColor: C.crimson, width: 14, height: 14 }} />
-              Remember me
-            </label>
-            <button onClick={() => setTab('forgot')} style={{ background: 'none', border: 'none', color: C.crimson, fontSize: '.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", textDecoration: 'underline' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.4rem' }}>
+            <button onClick={() => setTab('forgot')}
+              style={{ background: 'none', border: 'none', color: C.crimson, fontSize: '.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", textDecoration: 'underline' }}>
               Forgot Password?
             </button>
           </div>
 
           <AuthBtn onClick={handleLogin} loading={loading}>Sign In</AuthBtn>
-          <Divider />
-          <GoogleBtn />
 
           <p style={{ textAlign: 'center', fontSize: '.8rem', color: '#9a6040', marginTop: '1.2rem' }}>
             Don't have an account?{' '}
-            <button onClick={() => setTab('signup')} style={{ background: 'none', border: 'none', color: C.crimson, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Create one →</button>
+            <button onClick={() => { setTab('signup'); clearErrors() }}
+              style={{ background: 'none', border: 'none', color: C.crimson, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Create one →</button>
           </p>
         </div>
       )}
@@ -215,19 +242,29 @@ function CustomerAuth({ onSuccess }) {
       {/* SIGNUP */}
       {tab === 'signup' && (
         <div style={{ animation: 'fadeUp .3s ease both' }}>
-          <Input label="Full Name" value={signData.name} onChange={v => setSignData(d => ({ ...d, name: v }))} error={signErrors.name} placeholder="e.g. Priya Sharma" required />
-          <Input label="Email Address" type="email" value={signData.email} onChange={v => setSignData(d => ({ ...d, email: v }))} error={signErrors.email} placeholder="email@example.com" required />
-          <Input label="Phone Number" type="tel" value={signData.phone} onChange={v => setSignData(d => ({ ...d, phone: v }))} error={signErrors.phone} placeholder="10-digit mobile number" required />
-          <PasswordInput label="Password" value={signData.password} onChange={v => setSignData(d => ({ ...d, password: v }))} error={signErrors.password} placeholder="At least 6 characters" required />
-          <PasswordInput label="Confirm Password" value={signData.confirm} onChange={v => setSignData(d => ({ ...d, confirm: v }))} error={signErrors.confirm} placeholder="Re-enter your password" required />
+          <ErrorBanner msg={serverError} />
+          <Input label="Full Name" value={signData.name}
+            onChange={v => setSignData(d => ({ ...d, name: v }))}
+            error={signErrors.name} placeholder="e.g. Priya Sharma" required />
+          <Input label="Email Address" type="email" value={signData.email}
+            onChange={v => setSignData(d => ({ ...d, email: v }))}
+            error={signErrors.email} placeholder="email@example.com" required />
+          <Input label="Phone Number" type="tel" value={signData.phone}
+            onChange={v => setSignData(d => ({ ...d, phone: v }))}
+            error={signErrors.phone} placeholder="10-digit mobile number" required />
+          <PasswordInput label="Password" value={signData.password}
+            onChange={v => setSignData(d => ({ ...d, password: v }))}
+            error={signErrors.password} placeholder="At least 6 characters" required />
+          <PasswordInput label="Confirm Password" value={signData.confirm}
+            onChange={v => setSignData(d => ({ ...d, confirm: v }))}
+            error={signErrors.confirm} placeholder="Re-enter your password" required />
 
           <AuthBtn onClick={handleSignup} loading={loading}>Create Account</AuthBtn>
-          <Divider />
-          <GoogleBtn />
 
           <p style={{ textAlign: 'center', fontSize: '.8rem', color: '#9a6040', marginTop: '1.2rem' }}>
             Already have an account?{' '}
-            <button onClick={() => setTab('login')} style={{ background: 'none', border: 'none', color: C.crimson, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Sign in →</button>
+            <button onClick={() => { setTab('login'); clearErrors() }}
+              style={{ background: 'none', border: 'none', color: C.crimson, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Sign in →</button>
           </p>
         </div>
       )}
@@ -240,9 +277,12 @@ function CustomerAuth({ onSuccess }) {
             <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.2rem', fontWeight: 700, color: '#1a0400', marginBottom: 6 }}>Reset Password</h3>
             <p style={{ fontSize: '.82rem', color: '#9a6040' }}>Enter your email and we'll send a reset link.</p>
           </div>
-          <Input label="Email Address" type="email" value={forgotEmail} onChange={v => { setForgotEmail(v); setForgotError('') }} error={forgotError} placeholder="email@example.com" required />
+          <Input label="Email Address" type="email" value={forgotEmail}
+            onChange={v => { setForgotEmail(v); setForgotError('') }}
+            error={forgotError} placeholder="email@example.com" required />
           <AuthBtn onClick={handleForgot} loading={loading}>Send Reset Link</AuthBtn>
-          <button onClick={() => setTab('login')} style={{ width: '100%', marginTop: 12, background: 'none', border: 'none', color: C.crimson, fontSize: '.82rem', fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>← Back to Sign In</button>
+          <button onClick={() => setTab('login')}
+            style={{ width: '100%', marginTop: 12, background: 'none', border: 'none', color: C.crimson, fontSize: '.82rem', fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>← Back to Sign In</button>
         </div>
       )}
     </div>
@@ -250,7 +290,7 @@ function CustomerAuth({ onSuccess }) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// ADMIN AUTH
+// ADMIN AUTH  (unchanged — uses admin code, not backend)
 // ══════════════════════════════════════════════════════════════════
 function AdminAuth({ onSuccess }) {
   const [tab, setTab]         = useState('login')
@@ -288,7 +328,7 @@ function AdminAuth({ onSuccess }) {
     setLoading(true)
     await new Promise(r => setTimeout(r, 1200))
     setLoading(false)
-    onSuccess({ name: 'Admin', email: loginData.email, role: 'admin' })
+    onSuccess({ name: 'Admin', email: loginData.email, role: 'admin' }, null)
     showToast('Admin access granted 🛡️')
   }
 
@@ -297,7 +337,7 @@ function AdminAuth({ onSuccess }) {
     setLoading(true)
     await new Promise(r => setTimeout(r, 1400))
     setLoading(false)
-    onSuccess({ name: signData.name, email: signData.email, phone: signData.phone, role: 'admin' })
+    onSuccess({ name: signData.name, email: signData.email, phone: signData.phone, role: 'admin' }, null)
     showToast('Admin account created! 🛡️')
   }
 
@@ -305,7 +345,6 @@ function AdminAuth({ onSuccess }) {
     <div>
       {toast && <Toast msg={toast.msg} type={toast.type} />}
 
-      {/* Admin badge */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(61,0,0,.08)', border: '1px solid rgba(139,26,26,.2)', borderRadius: 12, padding: '10px 14px', marginBottom: '1.4rem' }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C.crimson} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         <div>
@@ -314,33 +353,30 @@ function AdminAuth({ onSuccess }) {
         </div>
       </div>
 
-      {/* Tabs */}
       <div style={{ display: 'flex', background: 'rgba(201,168,76,.1)', borderRadius: 50, padding: 4, marginBottom: '1.5rem', border: '1px solid rgba(201,168,76,.2)' }}>
         {['login', 'signup'].map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '8px 0', borderRadius: 50, border: 'none', background: tab === t ? `linear-gradient(135deg,${C.maroon},${C.darkRed})` : 'transparent', color: tab === t ? C.white : C.crimson, fontWeight: 700, fontSize: '.82rem', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all .3s', boxShadow: tab === t ? '0 4px 12px rgba(61,0,0,.35)' : 'none' }}>
+          <button key={t} onClick={() => setTab(t)}
+            style={{ flex: 1, padding: '8px 0', borderRadius: 50, border: 'none', background: tab === t ? `linear-gradient(135deg,${C.maroon},${C.darkRed})` : 'transparent', color: tab === t ? C.white : C.crimson, fontWeight: 700, fontSize: '.82rem', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all .3s', boxShadow: tab === t ? '0 4px 12px rgba(61,0,0,.35)' : 'none' }}>
             {t === 'login' ? 'Admin Sign In' : 'Register Admin'}
           </button>
         ))}
       </div>
 
-      {/* ADMIN LOGIN */}
       {tab === 'login' && (
         <div style={{ animation: 'fadeUp .3s ease both' }}>
-          <Input label="Admin Email" type="email" value={loginData.email} onChange={v => setLoginData(d => ({ ...d, email: v }))} error={loginErrors.email} placeholder="admin@pujihomefoods.com" required />
-          <PasswordInput label="Password" value={loginData.password} onChange={v => setLoginData(d => ({ ...d, password: v }))} error={loginErrors.password} placeholder="Admin password" required />
-
-          {/* Remember me */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.4rem' }}>
+          <Input label="Admin Email" type="email" value={loginData.email}
+            onChange={v => setLoginData(d => ({ ...d, email: v }))}
+            error={loginErrors.email} placeholder="admin@pujihomefoods.com" required />
+          <PasswordInput label="Password" value={loginData.password}
+            onChange={v => setLoginData(d => ({ ...d, password: v }))}
+            error={loginErrors.password} placeholder="Admin password" required />
+          <div style={{ marginBottom: '1.4rem' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', fontSize: '.8rem', color: '#7a4020', fontWeight: 500, userSelect: 'none' }}>
               <input type="checkbox" checked={loginData.remember} onChange={e => setLoginData(d => ({ ...d, remember: e.target.checked }))} style={{ accentColor: C.crimson, width: 14, height: 14 }} />
               Remember me
             </label>
           </div>
-
           <AuthBtn onClick={handleLogin} loading={loading}>Sign In as Admin</AuthBtn>
-          <Divider />
-          <GoogleBtn label="Continue with Google (Admin)" />
-
           <p style={{ textAlign: 'center', fontSize: '.78rem', color: '#9a6040', marginTop: '1rem' }}>
             New admin?{' '}
             <button onClick={() => setTab('signup')} style={{ background: 'none', border: 'none', color: C.crimson, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Register here →</button>
@@ -348,7 +384,6 @@ function AdminAuth({ onSuccess }) {
         </div>
       )}
 
-      {/* ADMIN SIGNUP */}
       {tab === 'signup' && (
         <div style={{ animation: 'fadeUp .3s ease both' }}>
           <Input label="Full Name" value={signData.name} onChange={v => setSignData(d => ({ ...d, name: v }))} error={signErrors.name} placeholder="Your full name" required />
@@ -361,8 +396,6 @@ function AdminAuth({ onSuccess }) {
             <PasswordInput label="" value={signData.code} onChange={v => setSignData(d => ({ ...d, code: v }))} error={signErrors.code} placeholder="Enter secret admin code" required={false} />
           </div>
           <AuthBtn onClick={handleSignup} loading={loading}>Create Admin Account</AuthBtn>
-          <Divider />
-          <GoogleBtn label="Continue with Google (Admin)" />
           <p style={{ textAlign: 'center', fontSize: '.78rem', color: '#9a6040', marginTop: '1rem' }}>
             Already registered?{' '}
             <button onClick={() => setTab('login')} style={{ background: 'none', border: 'none', color: C.crimson, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Sign in →</button>
@@ -379,7 +412,7 @@ function AdminAuth({ onSuccess }) {
 function PortalPicker({ onSelect }) {
   const portals = [
     { key: 'customer', icon: (<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>), title: 'Customer Portal', desc: 'Shop, track orders & manage your account' },
-    { key: 'admin',    icon: (<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>), title: 'Admin Portal',    desc: 'Manage products, orders & operations' },
+    { key: 'admin',    icon: (<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>), title: 'Admin Portal', desc: 'Manage products, orders & operations' },
   ]
   return (
     <div style={{ animation: 'fadeUp .35s ease both' }}>
@@ -424,13 +457,8 @@ export default function AuthModal() {
 
   useEffect(() => {
     if (authModal) {
-      // Only pre-select portal if explicitly set to 'customer' or 'admin'
-      // 'picker' or any other value = show portal picker first
-      if (authModal === 'customer' || authModal === 'admin') {
-        setPortal(authModal)
-      } else {
-        setPortal(null) // always show portal picker
-      }
+      if (authModal === 'customer' || authModal === 'admin') setPortal(authModal)
+      else setPortal(null)
     } else {
       setPortal(null)
     }
@@ -449,7 +477,8 @@ export default function AuthModal() {
 
   if (!authModal) return null
 
-  const handleSuccess = (userData) => { login(userData) }
+  // onSuccess now receives (userData, token)
+  const handleSuccess = (userData, token) => { login(userData, token) }
   const handleBack    = () => setPortal(null)
 
   return (
@@ -458,7 +487,6 @@ export default function AuthModal() {
         style={{ position: 'fixed', inset: 0, zIndex: 9000, background: 'rgba(26,4,0,.75)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', animation: 'fadeIn .25s ease both' }}>
         <div style={{ width: '100%', maxWidth: 460, maxHeight: '92vh', overflowY: 'auto', background: C.white, borderRadius: 24, border: '1px solid rgba(201,168,76,.28)', boxShadow: '0 40px 100px rgba(0,0,0,.5), 0 0 0 1px rgba(201,168,76,.1)', position: 'relative', animation: 'modalSlideUp .35s cubic-bezier(.34,1.56,.64,1) both' }}>
 
-          {/* Header strip */}
           <div style={{ background: `linear-gradient(135deg,${C.brown},${C.darkRed})`, borderRadius: '24px 24px 0 0', padding: '1.4rem 1.6rem 1.2rem', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg,transparent,${C.gold},transparent)` }} />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -485,9 +513,8 @@ export default function AuthModal() {
             )}
           </div>
 
-          {/* Body */}
           <div style={{ padding: '1.6rem' }}>
-            {!portal           && <PortalPicker onSelect={setPortal} />}
+            {!portal               && <PortalPicker onSelect={setPortal} />}
             {portal === 'customer' && <CustomerAuth onSuccess={handleSuccess} />}
             {portal === 'admin'    && <AdminAuth    onSuccess={handleSuccess} />}
           </div>
@@ -503,3 +530,4 @@ export default function AuthModal() {
     </>
   )
 }
+

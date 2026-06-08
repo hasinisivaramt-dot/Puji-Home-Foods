@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { products } from './data'
+import { products as localProducts } from './data'
 import { useCart } from './context/CartContext'
 import { CartProvider } from './context/CartContext'
 import { useAuth } from './auth/AuthContext'
@@ -34,10 +34,10 @@ const C = {
 // ── Image paths (from public/images/) ────────────────────────────
 const IMG = {
   logo:    '/images/logo.png',
-  hero1:   '/images/hero1.png',
-  hero2:   '/images/hero2.png',
-  hero3:   '/images/hero3.png',
-  hero4:   '/images/hero4.png',
+  hero1:   '/images/hero1.jpeg',
+  hero2:   '/images/hero2.jpeg',
+  hero3:   '/images/hero3.jpeg',
+  hero4:   '/images/hero4.jpeg',
   nonveg:  '/images/nonveg-pickle.png',
   chicken: '/images/chicken-pickle.webp',
   ginger:  '/images/ginger-pickle.jpg',
@@ -46,6 +46,9 @@ const IMG = {
   murukku: '/images/murukku.jpg',
   sweets2: '/images/sweets2.webp',
   combo:   '/images/combo.png',
+  boneChicken: encodeURI('/images/bone chicken pickle.jpg'),
+prawns:      '/images/prawnspickle.webp',
+mutton:      '/images/MuttonPickle.jpg',
 }
 
 // ── Data ─────────────────────────────────────────────────────────
@@ -418,7 +421,7 @@ function AboutUs() {
               }}
             >
               <img
-                src="/images/about-us.jpg"
+                src="/images/about-us.jpeg"
                 alt="About Puji Home Foods"
                 style={{
                   width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center',
@@ -555,8 +558,8 @@ function CategoryCard({ cat, setSelectedCategory }) {
 // ── Best Sellers ──────────────────────────────────────────────────
 const BEST_SELLER_IDS = [1, 23, 9, 34] // Boneless Chicken Pickle, Ariselu, Gongura Pickle, Jantikalu
 
-function BestSellers({ setPage }) {
-  const bestSellers = products.filter(p => BEST_SELLER_IDS.includes(p.id))
+function BestSellers({ setPage, products }) {
+  const bestSellers = products.slice(0, 4)
 
   return (
     <section id="best-sellers" style={{ padding: '88px 0', background: '#FAF7F2' }}>
@@ -997,8 +1000,21 @@ function BackTop() {
 function AppInner({ page, setPage }) {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [searchTerm, setSearchTerm] = useState('')
+  const [products, setProducts] = useState([])
   const [lastOrder, setLastOrder] = useState({ name: '', amount: 0 })
-  const [profile, setProfile] = useState({
+  
+useEffect(() => {
+  fetch('https://puji-home-foods-backend.onrender.com/api/products')
+    .then(res => res.json())
+    .then(data => {
+  console.log(data[0])
+  setProducts(data)
+})
+    .catch(err => console.log(err))
+}, [])
+
+
+const [profile, setProfile] = useState({
   name: 'Customer',
   email: 'customer@gmail.com',
   phone: '9876543210',
@@ -1016,7 +1032,7 @@ function AppInner({ page, setPage }) {
   })
 
   const handleLogout = () => { logout(); setPage('home') }
-
+  
   // Guard checkout — must be logged in as customer
   const handleCheckout = () => {
     if (!user || user.role !== 'customer') {
@@ -1146,10 +1162,11 @@ const { wishlist } = useWishlist()
       <>
         <Navbar page={page} setPage={setPage} onCartClick={() => setPage('cart')} />
         <Products
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          setPage={setPage}
-        />
+  products={filteredProducts}
+  searchTerm={searchTerm}
+  setSearchTerm={setSearchTerm}
+  setPage={setPage}
+/>
         <Footer />
         <BackTop />
       </>
@@ -1205,7 +1222,7 @@ const { wishlist } = useWishlist()
       amount: '₹1,200',
       date: '29 May 2026',
       status: 'Delivered',
-      image: '/images/bone chicken pickle.jpg',
+      image: IMG.boneChicken,
     },
     {
       id: 'PHF1023',
@@ -1214,7 +1231,7 @@ const { wishlist } = useWishlist()
       amount: '₹1,600',
       date: '27 May 2026',
       status: 'Shipped',
-      image: '/images/prawnspickle.webp',
+      image: '/images/prawnspickle.webp',   
     },
     {
       id: 'PHF1022',
@@ -2160,13 +2177,14 @@ if (page === 'offers') {
     code: 'PUJI10',
     discount: '10% OFF',
     min: 'Minimum Order ₹999',
-    image: '/images/bone chicken pickle.jpg',
+    image: IMG.boneChicken,
   },
   {
+
     code: 'FREESHIP',
     discount: 'FREE DELIVERY',
     min: 'Minimum Order ₹499',
-    image: '/images/prawnspickle.webp',
+    image: '/images/prawnspickle.webp',   
   },
   {
     code: 'WELCOME20',
@@ -2236,7 +2254,10 @@ cursor: 'pointer',
       <SectionDivider />
       <Categories setSelectedCategory={setSelectedCategory} />
       <SectionDivider />
-      <BestSellers setPage={setPage} />
+      <BestSellers
+  setPage={setPage}
+  products={products}
+/>
       <SectionDivider />
       <WhyChooseUs />
       <SectionDivider />
