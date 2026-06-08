@@ -12,7 +12,7 @@ const products = [
   {
     name: "Chicken Pickle",
     category: "Non-Veg Pickles",
-    image: "http://localhost:5173/images/chicken-pickle.webp",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/chicken-pickle.webp",
     prices: { "1kg": 1100 },
     totalStock: 10
   },
@@ -20,7 +20,7 @@ const products = [
   {
     name: "Boneless Chicken Pickle",
     category: "Non-Veg Pickles",
-    image: "http://localhost:5173/images/Boneless chicken pickle.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/Boneless chicken pickle.jpg",
     prices: { "1kg": 1200 },
     totalStock: 10
   },
@@ -28,7 +28,7 @@ const products = [
   {
     name: "Bone Chicken Pickle",
     category: "Non-Veg Pickles",
-    image: "http://localhost:5173/images/bone chicken pickle.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/bone chicken pickle.jpg",
     prices: { "1kg": 1000 },
     totalStock: 10
   },
@@ -36,7 +36,7 @@ const products = [
   {
     name: "Mutton Boneless",
     category: "Non-Veg Pickles",
-    image: "http://localhost:5173/images/MuttonPickle.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/MuttonPickle.jpg",
     prices: { "1kg": 2000 },
     totalStock: 8
   },
@@ -44,7 +44,7 @@ const products = [
   {
     name: "Prawns",
     category: "Non-Veg Pickles",
-    image: "http://localhost:5173/images/prawnspickle.webp",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/prawnspickle.webp",
     prices: { "1kg": 2000 },
     totalStock: 6
   },
@@ -52,7 +52,7 @@ const products = [
   {
     name: "Chicken Gongura",
     category: "Non-Veg Pickles",
-    image: "http://localhost:5173/images/gongurachickenpickle.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/gongurachickenpickle.jpg",
     prices: { "1kg": 1600 },
     totalStock: 8
   },
@@ -60,7 +60,7 @@ const products = [
   {
     name: "Mettila Pickle",
     category: "Non-Veg Pickles",
-    image: "http://localhost:5173/images/methillapickle.webp",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/methillapickle.webp",
     prices: { "1kg": 1600 },
     totalStock: 8
   },
@@ -68,7 +68,7 @@ const products = [
   {
     name: "Natukodi Boneless",
     category: "Non-Veg Pickles",
-    image: "http://localhost:5173/images/natukodipickle.webp",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/natukodipickle.webp",
     prices: { "1kg": 2000 },
     totalStock: 8
   },
@@ -78,7 +78,7 @@ const products = [
   {
     name: "Ginger Pickle",
     category: "Veg Pickles",
-    image: "http://localhost:5173/images/ginger-pickle.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/ginger-pickle.jpg",
     prices: { "1kg": 800 },
     totalStock: 12
   },
@@ -86,7 +86,7 @@ const products = [
   {
     name: "Gongura Pickle",
     category: "Veg Pickles",
-    image: "http://localhost:5173/images/gongura_pickle.webp",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/gongura_pickle.webp",
     prices: { "1kg": 800 },
     totalStock: 10
   },
@@ -94,7 +94,7 @@ const products = [
   {
     name: "Avakaya Pickle",
     category: "Veg Pickles",
-    image: "http://localhost:5173/images/avakaya pickle.webp",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/avakaya pickle.webp",
     prices: { "1kg": 400 },
     totalStock: 15
   },
@@ -102,7 +102,7 @@ const products = [
   {
     name: "Lemon Pickle",
     category: "Veg Pickles",
-    image: "http://localhost:5173/images/lemonpickle.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/lemonpickle.jpg",
     prices: { "1kg": 400 },
     totalStock: 14
   },
@@ -110,7 +110,7 @@ const products = [
   {
     name: "Kakarakaya Pickle",
     category: "Veg Pickles",
-    image: "http://localhost:5173/images/KakarakayaPachadi.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/KakarakayaPachadi.jpg",
     prices: { "1kg": 800 },
     totalStock: 10
   },
@@ -118,7 +118,7 @@ const products = [
   {
     name: "Kothimera Pickle",
     category: "Veg Pickles",
-    image: "http://localhost:5173/images/Kothimeera-Pickle.webp",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/Kothimeera-Pickle.webp",
     prices: { "1kg": 800 },
     totalStock: 10
   },
@@ -126,7 +126,7 @@ const products = [
   {
     name: "Pandumirchi Pickle",
     category: "Veg Pickles",
-    image: "http://localhost:5173/images/pandumirchi-pickle.webp",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/pandumirchi-pickle.webp",
     prices: { "1kg": 400 },
     totalStock: 12
   },
@@ -134,7 +134,7 @@ const products = [
   {
     name: "Pudina Pickle",
     category: "Veg Pickles",
-    image: "http://localhost:5173/images/pudinapickle.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/pudinapickle.jpg",
     prices: { "1kg": 400 },
     totalStock: 12
   },
@@ -142,7 +142,7 @@ const products = [
   {
     name: "Tomato Pickle",
     category: "Veg Pickles",
-    image: "http://localhost:5173/images/tomato-pickle.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/tomato-pickle.jpg",
     prices: { "1kg": 400 },
     totalStock: 12
   },
@@ -150,7 +150,7 @@ const products = [
   {
     name: "Usiri Pickle",
     category: "Veg Pickles",
-    image: "http://localhost:5173/images/usiripickle.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/usiripickle.jpg",
     prices: { "1kg": 400 },
     totalStock: 12
   },
@@ -158,7 +158,7 @@ const products = [
   {
     name: "Chintakaya Pickle",
     category: "Veg Pickles",
-    image: "http://localhost:5173/images/Chintakayapickle.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/Chintakayapickle.jpg",
     prices: { "1kg": 400 },
     totalStock: 12
   },
@@ -166,7 +166,7 @@ const products = [
   {
     name: "Karivepaku Pickle",
     category: "Veg Pickles",
-    image: "http://localhost:5173/images/karivepaku_pickle.webp",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/karivepaku_pickle.webp",
     prices: { "1kg": 600 },
     totalStock: 10
   },
@@ -176,7 +176,7 @@ const products = [
   {
     name: "Ariselu",
     category: "Sweets",
-    image: "http://localhost:5173/images/ariselu.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/ariselu.jpg",
     prices: { "1kg": 600 },
     totalStock: 20
   },
@@ -184,7 +184,7 @@ const products = [
   {
     name: "Sunnundalu",
     category: "Sweets",
-    image: "http://localhost:5173/images/Sunnundalu.avif",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/Sunnundalu.avif",
     prices: { "1kg": 1000 },
     totalStock: 15
   },
@@ -192,7 +192,7 @@ const products = [
   {
     name: "Dry Fruit Laddu",
     category: "Sweets",
-    image: "http://localhost:5173/images/MR-Dry-Fruit-Ladu.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/MR-Dry-Fruit-Ladu.jpg",
     prices: { "1kg": 1200 },
     totalStock: 10
   },
@@ -200,7 +200,7 @@ const products = [
   {
     name: "Boondhi Atchu",
     category: "Sweets",
-    image: "http://localhost:5173/images/Boondhi Atchu.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/Boondhi Atchu.jpg",
     prices: { "1kg": 500 },
     totalStock: 12
   },
@@ -208,7 +208,7 @@ const products = [
   {
     name: "Chalividi",
     category: "Sweets",
-    image: "http://localhost:5173/images/chalividi.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/chalividi.jpg",
     prices: { "1kg": 500 },
     totalStock: 12
   },
@@ -216,7 +216,7 @@ const products = [
   {
     name: "Gavvalu",
     category: "Sweets",
-    image: "http://localhost:5173/images/Gavvalu.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/Gavvalu.jpg",
     prices: { "1kg": 600 },
     totalStock: 12
   },
@@ -224,7 +224,7 @@ const products = [
   {
     name: "Kaju Kajalu",
     category: "Sweets",
-    image: "http://localhost:5173/images/Kaju Kajalu.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/Kaju Kajalu.jpg",
     prices: { "1kg": 700 },
     totalStock: 10
   },
@@ -232,7 +232,7 @@ const products = [
   {
     name: "Kaju Chikki",
     category: "Sweets",
-    image: "http://localhost:5173/images/Kaju Chikki.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/Kaju Chikki.jpg",
     prices: { "1kg": 1400 },
     totalStock: 10
   },
@@ -242,7 +242,7 @@ const products = [
   {
     name: "Atukulu Mixture",
     category: "Hot & Snacks",
-    image: "http://localhost:5173/images/atukula-mixture.webp",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/atukula-mixture.webp",
     prices: { "1kg": 500 },
     totalStock: 18
   },
@@ -250,7 +250,7 @@ const products = [
   {
     name: "Jantikalu",
     category: "Hot & Snacks",
-    image: "http://localhost:5173/images/Jantikalu.webp",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/Jantikalu.webp",
     prices: { "1kg": 500 },
     totalStock: 15
   },
@@ -258,7 +258,7 @@ const products = [
   {
     name: "Chakralu",
     category: "Hot & Snacks",
-    image: "http://localhost:5173/images/Chakralu.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/Chakralu.jpg",
     prices: { "1kg": 500 },
     totalStock: 12
   },
@@ -266,7 +266,7 @@ const products = [
   {
     name: "Ribbon Pakodi",
     category: "Hot & Snacks",
-    image: "http://localhost:5173/images/Ribbon Pakodi.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/Ribbon Pakodi.jpg",
     prices: { "1kg": 500 },
     totalStock: 12
   },
@@ -274,7 +274,7 @@ const products = [
   {
     name: "Sajjabiyyam Chakodi",
     category: "Hot & Snacks",
-    image: "http://localhost:5173/images/Sajjabiyyam Chakodi.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/Sajjabiyyam Chakodi.jpg",
     prices: { "1kg": 500 },
     totalStock: 12
   },
@@ -282,7 +282,7 @@ const products = [
   {
     name: "Spicy Boondhi",
     category: "Hot & Snacks",
-    image: "http://localhost:5173/images/karam-boondi.webp",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/karam-boondi.webp",
     prices: { "1kg": 500 },
     totalStock: 12
   },
@@ -290,7 +290,7 @@ const products = [
   {
     name: "Pesara Vadiyalu",
     category: "Hot & Snacks",
-    image: "http://localhost:5173/images/Pesara Vadiyalu.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/Pesara Vadiyalu.jpg",
     prices: { "1kg": 500 },
     totalStock: 10
   },
@@ -298,7 +298,7 @@ const products = [
   {
     name: "Minapa Vadiyalu",
     category: "Hot & Snacks",
-    image: "http://localhost:5173/images/Minapa-Vadiyalu.png",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/Minapa-Vadiyalu.png",
     prices: { "1kg": 600 },
     totalStock: 10
   },
@@ -306,7 +306,7 @@ const products = [
   {
     name: "Saggubiyyam Vadiyalu",
     category: "Hot & Snacks",
-    image: "http://localhost:5173/images/Saggubiyyam Vadiyalu.webp",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/Saggubiyyam Vadiyalu.webp",
     prices: { "1kg": 600 },
     totalStock: 10
   },
@@ -314,7 +314,7 @@ const products = [
   {
     name: "Arisi Vadiyalu",
     category: "Hot & Snacks",
-    image: "http://localhost:5173/images/Arisi Vadiyalu.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/Arisi Vadiyalu.jpg",
     prices: { "1kg": 600 },
     totalStock: 10
   },
@@ -322,7 +322,7 @@ const products = [
   {
     name: "Chakodalu",
     category: "Hot & Snacks",
-    image: "http://localhost:5173/images/Chakodalu.jpg",
+    image: "https://subtle-mandazi-df58bb.netlify.app/images/Chakodalu.jpg",
     prices: { "1kg": 800 },
     totalStock: 10
   }

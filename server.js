@@ -20,6 +20,9 @@ connectDB();
 // Middleware
 app.use(cors());
 app.use(express.json());
+const path = require("path");
+
+app.use("/images", express.static(path.join(__dirname, "../public/images")));
 
 // API Routes
 app.use("/api/admin", adminRoutes);
