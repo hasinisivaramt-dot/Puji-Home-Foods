@@ -86,7 +86,7 @@ export function AuthProvider({ children, onLoginRedirect }) {
 
       try {
         const profile = await api.getProfile()
-        setUser({ ...profile, role: 'customer' })
+        setUser({ ...profile, id: profile._id?.toString(), role: 'customer' })
       } catch {
         // Token expired or invalid — clear it
         localStorage.removeItem('puji_token')
@@ -100,8 +100,12 @@ export function AuthProvider({ children, onLoginRedirect }) {
 
   // ── Login: save token + user ──────────────────────────────────
   const login = (userData, token = null) => {
-    const enriched = { ...userData, role: userData.role || 'customer' }
-    setUser(enriched)
+  const enriched = { 
+    ...userData, 
+    id: userData.id || userData._id,
+    role: userData.role || 'customer' 
+  }
+  setUser(enriched)
 
     if (token) {
       localStorage.setItem('puji_token', token)

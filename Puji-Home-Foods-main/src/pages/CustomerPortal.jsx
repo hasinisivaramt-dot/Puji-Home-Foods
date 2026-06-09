@@ -1,4 +1,5 @@
 import { useAuth } from '../auth/AuthContext'
+import { useState, useEffect } from 'react'
 import {
   FaShoppingBag,
   FaHeart,
@@ -26,6 +27,59 @@ export default function CustomerPortal({
    wishlist
 }) {
  const { user, logout } = useAuth()
+ const [orders, setOrders] = useState([])
+ console.log("User:", user)
+console.log("Orders:", orders)
+
+useEffect(() => {
+  if (!user?.id && !user?._id) return
+
+  fetch(
+    `https://puji-home-foods-backend.onrender.com/api/orders/user/${
+      user?._id || user?.id
+    }`
+  )
+    .then(res => res.json())
+    .then(data => setOrders(data))
+    .catch(err => console.log(err))
+}, [user])
+const handleCancelOrder = async (orderId) => {
+
+  const confirmCancel = window.confirm(
+    'Are you sure you want to cancel this order?'
+  )
+
+  if (!confirmCancel) return
+
+  try {
+
+    const res = await fetch(
+      `https://puji-home-foods-backend.onrender.com/api/orders/${orderId}/cancel`,
+      {
+        method: 'PUT',
+      }
+    )
+
+    if (!res.ok) {
+      throw new Error('Failed')
+    }
+
+    setOrders(prev =>
+      prev.map(order =>
+        order._id === orderId
+          ? { ...order, orderStatus: 'Cancelled' }
+          : order
+      )
+    )
+
+    alert('Order Cancelled Successfully')
+
+  } catch (error) {
+
+    alert('Failed To Cancel Order')
+
+  }
+}
 
   return (
     <div
@@ -277,7 +331,7 @@ export default function CustomerPortal({
  <DashboardCard
  icon={<FaShoppingBag size={22} color="#C9A84C" />}
  title="Total Orders"
- value="12"
+ value={orders.length}
  subtitle="View all orders"
  onClick={() => setPage('orders')}
 />
@@ -356,47 +410,10 @@ export default function CustomerPortal({
   View All Orders →
 </button>
   </div>
-
-    {[
-  {
-  id: 'PHF1024',
-  product: 'Boneless Chicken Pickle 1kg',
-  qty: 1,
-  amount: '₹1,200',
-  date: '29 May 2026',
-  status: 'Delivered',
-  image: "/images/bone chicken pickle.jpg"
-},
 {
-  id: 'PHF1023',
-  product: 'Prawns Pickle 500g',
-  qty: 2,
-  amount: '₹1,600',
-  date: '27 May 2026',
-  status: 'Shipped',
-  image: "/images/prawnspickle.webp"
-},
-{
-  id: 'PHF1022',
-  product: 'Mutton Pickle 1kg',
-  qty: 1,
-  amount: '₹1,350',
-  date: '25 May 2026',
-  status: 'Processing',
-  image: "/images/MuttonPickle.jpg"
-},
-{
-  id: 'PHF1021',
-  product: 'Mixed Veg Pickle 500g',
-  qty: 1,
-  amount: '₹450',
-  date: '22 May 2026',
-  status: 'Delivered',
-  image: "/images/pandumirchi-pickle.webp"
-},
-].map((order) => (
+    orders.map((order) => (
   <div
-    key={order.id}
+    key={order._id}
     style={{
       display: 'flex',
       justifyContent: 'space-between',
@@ -413,8 +430,8 @@ export default function CustomerPortal({
   }}
 >
   <img
-    src={order.image}
-    alt={order.product}
+    src="/images/chicken-pickle.webp"
+    alt={order.products?.[0]?.name}
     style={{
       width: '70px',
       height: '70px',
@@ -425,15 +442,15 @@ export default function CustomerPortal({
 
   <div>
     <h3 style={{ margin: '0 0 8px' }}>
-      Order #{order.id}
+      Order #{order._id?.slice(-6)}
     </h3>
 
     <p style={{ margin: '0 0 6px' }}>
-      {order.product}
+      {order.products?.[0]?.name}
     </p>
 
     <span style={{ color: '#666' }}>
-      Qty: {order.qty} • {order.amount}
+      Qty: {order.products?.[0]?.quantity} • ₹{order.totalAmount}
     </span>
   </div>
 </div>
@@ -452,7 +469,7 @@ export default function CustomerPortal({
       fontSize: '14px',
     }}
   >
-    {order.date}
+    {new Date(order.createdAt).toLocaleDateString()}
   </span>
 
   <span
@@ -460,21 +477,36 @@ export default function CustomerPortal({
       padding: '8px 16px',
       borderRadius: '20px',
       background:
-        order.status === 'Delivered'
+        order.orderStatus === 'Delivered'
           ? '#EAF7EC'
-          : order.status === 'Shipped'
+          : order.orderStatus === 'Shipped'
           ? '#FFF3DD'
           : '#E8F0FF',
       color:
-        order.status === 'Delivered'
+        order.orderStatus === 'Delivered'
           ? '#2E8B57'
-          : order.status === 'Shipped'
+          : order.orderStatus === 'Shipped'
           ? '#C17A00'
           : '#2A62D5',
     }}
   >
-    {order.status}
+    {order.orderStatus}
   </span>
+  {order.orderStatus === 'Pending' && (
+  <button
+    onClick={() => handleCancelOrder(order._id)}
+    style={{
+      padding: '8px 16px',
+      border: 'none',
+      borderRadius: '8px',
+      background: '#c0392b',
+      color: 'white',
+      cursor: 'pointer',
+    }}
+  >
+    Cancel Order
+  </button>
+)}
 </div>
   </div>
  ))}

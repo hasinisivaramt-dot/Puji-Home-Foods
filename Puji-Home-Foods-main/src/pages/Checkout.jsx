@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import OrderSummary from '../components/OrderSummary'
+import { useCart } from '../context/CartContext'
+import { useAuth } from '../auth/AuthContext'
 
 const C = { gold: '#C9A84C', goldL: '#E8C97A', crimson: '#8B1A1A', darkRed: '#6B0F0F', brown: '#2A1005', offWhite: '#FAF7F2' }
 
@@ -32,12 +34,26 @@ function validate(form) {
   return errors
 }
 
+function getUserIdFromToken() {
+  try {
+    const token = localStorage.getItem('puji_token')
+    if (!token) return null
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return payload.id || null
+  } catch {
+    return null
+  }
+}
+
 export default function Checkout({ onBack, onSuccess, onFailure }) {
-  const [form, setForm]           = useState({ name:'', phone:'', pincode:'', address:'', city:'', state:'' })
-  const [errors, setErrors]       = useState({})
-  const [focused, setFocused]     = useState(null)
+  const { cart, grandTotal } = useCart()
+  const { user } = useAuth()
+  const [form, setForm]             = useState({ name:'', phone:'', pincode:'', address:'', city:'', state:'' })
+  const [errors, setErrors]         = useState({})
+  const [focused, setFocused]       = useState(null)
   const [submitting, setSubmitting] = useState(false)
-  const [payError, setPayError]   = useState('')
+  const [payError, setPayError]     = useState('')
+  const [paymentMethod, setPaymentMethod] = useState('COD')
 
   const handleChange = (key, val) => {
     setForm(f => ({ ...f, [key]: val }))
@@ -46,18 +62,53 @@ export default function Checkout({ onBack, onSuccess, onFailure }) {
   }
 
   const handleSubmit = async () => {
+    if (paymentMethod === 'ONLINE') {
+  alert('Online Payment Coming Soon');
+  return;
+}
     const errs = validate(form)
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
     setSubmitting(true)
     setPayError('')
+
     try {
-      // Simulate payment gateway — always succeeds unless network error
-      await new Promise(r => setTimeout(r, 1800))
+      const userId = user?._id || user?.id || getUserIdFromToken()
+      console.log('SAVING ORDER WITH USERID:', userId)
+      console.log("AUTH USER:", user)
+      console.log("USER ID:", userId)
+
+      const orderData = {
+        customerName: form.name,
+        phone: form.phone,
+        address: `${form.address}, ${form.city}, ${form.state} - ${form.pincode}`,
+        products: cart.map(item => ({
+          productId: String(item.id),
+          name: item.name,
+          weight: String(item.weight),
+          quantity: item.quantity,
+          price: item.finalPrice,
+        })),
+        totalAmount: grandTotal,
+       paymentMethod: paymentMethod,
+paymentStatus: paymentMethod === 'COD' ? 'Pending' : 'Paid',
+orderStatus: 'Pending',
+        userId: userId,
+      }
+
+      const res = await fetch('https://puji-home-foods-backend.onrender.com/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData),
+      })
+
+      if (!res.ok) throw new Error('Order failed')
+
       setSubmitting(false)
       onSuccess(form)
+
     } catch (err) {
       setSubmitting(false)
-      setPayError('Payment gateway error. Please try again or use a different payment method.')
+      setPayError('Something went wrong. Please try again.')
       onFailure()
     }
   }
@@ -74,7 +125,6 @@ export default function Checkout({ onBack, onSuccess, onFailure }) {
 
   return (
     <div style={{ minHeight: '100vh', background: C.offWhite, paddingTop: 90 }}>
-      {/* Header */}
       <div style={{ background: `linear-gradient(135deg,${C.brown},${C.darkRed})`, padding: '2.5rem 2rem', marginBottom: '2rem', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg,transparent,${C.gold},transparent)` }} />
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -86,15 +136,12 @@ export default function Checkout({ onBack, onSuccess, onFailure }) {
       </div>
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 2rem 4rem', display: 'grid', gridTemplateColumns: '1fr 360px', gap: '2rem', alignItems: 'start' }}>
-
-        {/* LEFT – form */}
         <div style={{ background: 'white', borderRadius: 20, padding: '2rem', border: '1px solid rgba(201,168,76,.15)', boxShadow: '0 4px 20px rgba(0,0,0,.06)' }}>
           <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.15rem', fontWeight: 700, color: '#1a0400', marginBottom: '1.8rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(201,168,76,.15)' }}>
             Shipping Information
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.2rem' }}>
-            {/* Standard text fields */}
             {FIELDS.map(f => (
               <div key={f.key} style={{ gridColumn: f.half ? 'auto' : 'span 2' }}>
                 <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 600, color: focused === f.key ? C.crimson : '#7a4020', marginBottom: 6, transition: 'color .2s', letterSpacing: '.3px' }}>
@@ -114,7 +161,6 @@ export default function Checkout({ onBack, onSuccess, onFailure }) {
               </div>
             ))}
 
-            {/* State dropdown */}
             <div style={{ gridColumn: 'auto' }}>
               <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 600, color: focused === 'state' ? C.crimson : '#7a4020', marginBottom: 6, transition: 'color .2s', letterSpacing: '.3px' }}>
                 State <span style={{ color: '#c0392b' }}>*</span>
@@ -142,8 +188,30 @@ export default function Checkout({ onBack, onSuccess, onFailure }) {
               )}
             </div>
           </div>
+          <div style={{ marginTop: '20px' }}>
+  <h3 style={{ marginBottom: '10px' }}>Payment Method</h3>
 
-          {/* Payment error — only shown on real gateway errors */}
+  <label style={{ display: 'block', marginBottom: '10px' }}>
+    <input
+      type="radio"
+      value="COD"
+      checked={paymentMethod === 'COD'}
+      onChange={() => setPaymentMethod('COD')}
+    />
+    {' '}Cash on Delivery
+  </label>
+
+  <label style={{ display: 'block' }}>
+    <input
+      type="radio"
+      value="ONLINE"
+      checked={paymentMethod === 'ONLINE'}
+      onChange={() => setPaymentMethod('ONLINE')}
+    />
+    {' '}Online Payment (Coming Soon)
+  </label>
+</div>
+
           {payError && (
             <div style={{ marginTop: '1.2rem', display: 'flex', alignItems: 'flex-start', gap: 8, background: '#fee2e2', border: '1px solid rgba(192,57,43,.3)', borderRadius: 10, padding: '10px 14px' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0392b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
@@ -153,7 +221,6 @@ export default function Checkout({ onBack, onSuccess, onFailure }) {
             </div>
           )}
 
-          {/* Buttons */}
           <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', flexWrap: 'wrap' }}>
             <button onClick={onBack}
               style={{ flex: '0 0 auto', padding: '11px 24px', borderRadius: 50, border: `1px solid ${C.gold}`, background: 'none', color: C.crimson, fontWeight: 600, fontSize: '.85rem', cursor: 'pointer', transition: 'all .3s' }}
@@ -174,7 +241,6 @@ export default function Checkout({ onBack, onSuccess, onFailure }) {
           <style>{`@keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
         </div>
 
-        {/* RIGHT – summary */}
         <OrderSummary showItems checkoutLabel={null} />
       </div>
     </div>

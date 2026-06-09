@@ -995,6 +995,154 @@ function BackTop() {
     >↑</button>
   )
 }
+// ── Orders Page ───────────────────────────────────────────────────
+function OrdersPage({ setPage, user }) {
+  const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    console.log('USER OBJECT:', user)
+    fetch('https://puji-home-foods-backend.onrender.com/api/orders')
+      .then(res => res.json())
+      .then(data => {
+        console.log('LATEST ORDER:', data[data.length - 1])
+        console.log('USER ID:', user?.id, user?._id)
+        const userId = String(user?.id || user?._id || '')
+const myOrders = data.filter(o => {
+  if (!o.userId) return false
+  return String(o.userId) === userId
+})
+        console.log('MATCHED ORDERS:', myOrders)
+        setOrders(myOrders)
+        setLoading(false)
+      })
+      .catch(err => { console.error(err); setLoading(false) })
+  }, [user])
+
+  return (
+    <div style={{ minHeight: '100vh', padding: '120px 40px', background: '#F5ECD7' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25 }}>
+          <h1 style={{ color: '#3D0000', margin: 0 }}>My Orders</h1>
+          <button onClick={() => setPage('portal')}
+            style={{ background: '#8B1A1A', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>
+            ← Back to Portal
+          </button>
+        </div>
+
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '4rem', color: '#9a6040', fontSize: '1.1rem' }}>
+            Loading your orders...
+          </div>
+        ) : orders.length === 0 ? (
+          <div style={{ background: '#fff', padding: 50, borderRadius: 16, textAlign: 'center' }}>
+            <div style={{ fontSize: '3rem', marginBottom: 16 }}>📦</div>
+            <h2 style={{ color: '#3D0000' }}>No Orders Yet</h2>
+            <p style={{ color: '#9a6040' }}>You haven't placed any orders yet.</p>
+            <button onClick={() => setPage('products')}
+              style={{ background: '#8B1A1A', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: 8, cursor: 'pointer', marginTop: 16, fontWeight: 600 }}>
+              Shop Now
+            </button>
+          </div>
+        ) : (
+          orders.map(order => (
+            <div key={order._id} style={{ background: '#fff', borderRadius: 16, padding: 20, marginBottom: 20, boxShadow: '0 4px 15px rgba(0,0,0,.08)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+  <div>
+    <p style={{ margin: 0, fontWeight: 700, color: '#3D0000' }}>
+      Order #{order._id.slice(-6).toUpperCase()}
+    </p>
+  </div>
+
+  <div style={{ textAlign: 'right' }}>
+    <span style={{
+      padding: '6px 14px',
+      borderRadius: 20,
+      fontWeight: 600,
+      fontSize: '.82rem',
+      background: order.orderStatus === 'Delivered'
+        ? '#EAF7EC'
+        : order.orderStatus === 'Shipped'
+        ? '#FFF3DD'
+        : '#E8F0FF',
+      color: order.orderStatus === 'Delivered'
+        ? '#2E8B57'
+        : order.orderStatus === 'Shipped'
+        ? '#C17A00'
+        : '#2A62D5',
+    }}>
+      {order.orderStatus}
+    </span>
+
+    {order.orderStatus === 'Pending' && (
+      <div>
+        <button
+          onClick={async () => {
+  const confirmCancel = window.confirm(
+    'Are you sure you want to cancel this order?'
+  )
+
+  if (!confirmCancel) return
+
+  try {
+    const response = await fetch(
+  `https://puji-home-foods-backend.onrender.com/api/orders/${order._id}/cancel`,
+  {
+    method: "PUT",
+  }
+)
+
+    const data = await response.json()
+
+    if (response.ok) {
+      alert('Order cancelled successfully')
+      window.location.reload()
+    } else {
+      alert(data.message || 'Failed to cancel order')
+    }
+  } catch (error) {
+    console.error(error)
+    alert('Server Error')
+  }
+}}
+          style={{
+            marginTop: '10px',
+            background: '#dc2626',
+            color: '#fff',
+            border: 'none',
+            padding: '8px 12px',
+            borderRadius: '8px',
+            cursor: 'pointer'
+          }}
+        >
+          Cancel Order
+        </button>
+      </div>
+    )}
+  </div>
+</div>
+              {order.products.map((p, i) => (
+                <div key={i} style={{ display: 'flex', gap: 12, padding: '10px 0', borderTop: '1px solid #f0e6d3' }}>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: 0, fontWeight: 600, color: '#1a0400' }}>{p.name}</p>
+                    <p style={{ margin: '3px 0 0', fontSize: '.82rem', color: '#9a6040' }}>
+                      Weight: {p.weight}g · Qty: {p.quantity} · ₹{p.price}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 12, borderTop: '1px solid #f0e6d3' }}>
+                <span style={{ fontSize: '.85rem', color: '#9a6040' }}>📍 {order.address}</span>
+                <span style={{ fontWeight: 700, color: '#3D0000' }}>Total: ₹{order.totalAmount}</span>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}
+
 
 // ── AppInner ──────────────────────────────────────────────────────
 function AppInner({ page, setPage }) {
@@ -1172,165 +1320,11 @@ const { wishlist } = useWishlist()
       </>
     )
   }
-  if (page === 'orders') {
+ if (page === 'orders') {
   return (
     <>
-      <Navbar
-        onCartClick={() => setPage('cart')}
-        setPage={setPage}
-      />
-
-      <div
-  style={{
-    minHeight: '100vh',
-    padding: '120px 40px',
-    background: '#F5ECD7',
-  }}
->
-  <div
-    style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: '25px',
-    }}
-  >
-    <h1 style={{ color: '#3D0000' }}>
-      My Orders
-    </h1>
-
-    <button
-      onClick={() => setPage('portal')}
-      style={{
-        background: '#8B1A1A',
-        color: '#fff',
-        border: 'none',
-        padding: '10px 18px',
-        borderRadius: '8px',
-        cursor: 'pointer',
-      }}
-    >
-      ← Back to Portal
-    </button>
-  </div>
-
-  {[
-    {
-      id: 'PHF1024',
-      product: 'Boneless Chicken Pickle 1kg',
-      qty: 1,
-      amount: '₹1,200',
-      date: '29 May 2026',
-      status: 'Delivered',
-      image: IMG.boneChicken,
-    },
-    {
-      id: 'PHF1023',
-      product: 'Prawns Pickle 500g',
-      qty: 2,
-      amount: '₹1,600',
-      date: '27 May 2026',
-      status: 'Shipped',
-      image: '/images/prawnspickle.webp',   
-    },
-    {
-      id: 'PHF1022',
-      product: 'Mutton Pickle 1kg',
-      qty: 1,
-      amount: '₹1,350',
-      date: '25 May 2026',
-      status: 'Processing',
-      image: '/images/MuttonPickle.jpg',
-    },
-  ].map((order) => (
-    <div
-      key={order.id}
-      style={{
-        background: '#fff',
-        borderRadius: '16px',
-        padding: '20px',
-        marginBottom: '20px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        boxShadow: '0 4px 15px rgba(0,0,0,.08)',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '15px',
-        }}
-      >
-        <img
-          src={order.image}
-          alt={order.product}
-          style={{
-            width: '90px',
-            height: '90px',
-            borderRadius: '12px',
-            objectFit: 'cover',
-          }}
-        />
-
-        <div>
-          <h3 style={{ margin: '0 0 8px' }}>
-            {order.product}
-          </h3>
-
-          <p style={{ margin: '0 0 5px' }}>
-            Order ID: {order.id}
-          </p>
-
-          <p style={{ margin: '0 0 5px' }}>
-            Qty: {order.qty}
-          </p>
-
-          <p style={{ margin: 0 }}>
-            {order.amount}
-          </p>
-        </div>
-      </div>
-
-      <div
-        style={{
-          textAlign: 'right',
-        }}
-      >
-        <p
-          style={{
-            marginBottom: '10px',
-            color: '#666',
-          }}
-        >
-          {order.date}
-        </p>
-
-        <span
-          style={{
-            padding: '8px 14px',
-            borderRadius: '20px',
-            background:
-              order.status === 'Delivered'
-                ? '#EAF7EC'
-                : order.status === 'Shipped'
-                ? '#FFF3DD'
-                : '#E8F0FF',
-            color:
-              order.status === 'Delivered'
-                ? '#2E8B57'
-                : order.status === 'Shipped'
-                ? '#C17A00'
-                : '#2A62D5',
-          }}
-        >
-          {order.status}
-        </span>
-      </div>
-    </div>
-  ))}
-</div>
+      <Navbar onCartClick={() => setPage('cart')} setPage={setPage} />
+      <OrdersPage setPage={setPage} user={user} />
     </>
   )
 }
