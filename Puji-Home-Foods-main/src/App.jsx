@@ -1275,6 +1275,11 @@ const [profile, setProfile] = useState({
   location: 'Hyderabad',
 })
   const { user, logout, openAuth } = useAuth()
+  useEffect(() => {
+  const handler = () => openAuth('customer')
+  window.addEventListener('require-login', handler)
+  return () => window.removeEventListener('require-login', handler)
+}, [])
   const { clearCart, grandTotal } = useCart()
 
   const filteredProducts = products.filter((product) => {

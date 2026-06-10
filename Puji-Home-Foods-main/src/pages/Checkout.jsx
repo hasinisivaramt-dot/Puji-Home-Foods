@@ -62,6 +62,16 @@ export default function Checkout({ onBack, onSuccess, onFailure }) {
   }
 
   const handleSubmit = async () => {
+
+  if (cart.length === 0) {
+    alert("Your cart is empty")
+    return
+  }
+
+  if (paymentMethod === 'ONLINE') {
+    alert('Online Payment Coming Soon')
+    return
+  }
     if (paymentMethod === 'ONLINE') {
   alert('Online Payment Coming Soon');
   return;
@@ -76,18 +86,20 @@ export default function Checkout({ onBack, onSuccess, onFailure }) {
       console.log('SAVING ORDER WITH USERID:', userId)
       console.log("AUTH USER:", user)
       console.log("USER ID:", userId)
+      console.log("CART ITEMS:", cart)
 
       const orderData = {
         customerName: form.name,
         phone: form.phone,
         address: `${form.address}, ${form.city}, ${form.state} - ${form.pincode}`,
         products: cart.map(item => ({
-          productId: String(item.id),
-          name: item.name,
-          weight: String(item.weight),
-          quantity: item.quantity,
-          price: item.finalPrice,
-        })),
+  productId: String(item.id),
+  name: item.name,
+  image: item.image,
+  weight: String(item.weight),
+  quantity: item.quantity,
+  price: item.finalPrice,
+})),
         totalAmount: grandTotal,
        paymentMethod: paymentMethod,
 paymentStatus: paymentMethod === 'COD' ? 'Pending' : 'Paid',

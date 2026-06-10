@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { adminCategories, orders, customers, payments, coupons, deliveries, reviews, admins, revenueData, ordersData, topProducts, categoryData } from '../data/adminData'
 import { getAdminCode, setAdminCode } from '../data/adminCode'
 import { Card, Badge, ABtn, SearchBar, DataTable, Toast, ConfirmModal, AC, Icon } from '../components/AdminShared'
@@ -105,37 +105,120 @@ export function ACategories() {
 // ORDERS
 // ══════════════════════════════════════════════════════════════════
 export function AOrders() {
-  const [data, setData]         = useState(orders)
+  const [data, setData] = useState([])
+  useEffect(() => {
+  fetch('https://puji-home-foods-backend.onrender.com/api/orders')
+    .then(res => res.json())
+    .then(data => {
+      setData(data)
+    })
+    .catch(err => console.error(err))
+}, [])
   const [search, setSearch]     = useState('')
   const [statusF, setStatusF]   = useState('All')
   const [viewItem, setViewItem] = useState(null)
   const [toast, setToast]       = useState(null)
 
-  const statuses = ['All','Pending','Processing','Shipped','Delivered','Cancelled']
+  const statuses = ['All','Pending','Confirmed','Preparing','Shipped','Delivered','Cancelled']
   const filtered = data.filter(o =>
-    (statusF==='All' || o.status===statusF) &&
-    (o.customer.toLowerCase().includes(search.toLowerCase()) || o.id.includes(search.toUpperCase()))
+  (statusF === 'All' || o.orderStatus === statusF) &&
+  (
+    (o.customerName || '')
+      .toLowerCase()
+      .includes(search.toLowerCase())
   )
+)
 
-  const updateStatus = (id, status) => {
-    setData(d => d.map(o => o.id===id ? {...o,status} : o))
-    setToast({ msg:`Order status updated to ${status}`, type:'success' })
+  const updateStatus = async (id, status) => {
+    try {
+      await fetch(
+        `https://puji-home-foods-backend.onrender.com/api/orders/${id}/status`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderStatus: status }),
+        }
+      )
+      setData(d => d.map(o => o._id === id ? { ...o, orderStatus: status } : o))
+      setToast({ msg: `Order status updated to ${status}`, type: 'success' })
+    } catch (err) {
+      console.error(err)
+      setToast({ msg: 'Failed to update status', type: 'error' })
+    }
   }
 
   const columns = [
-    { key:'id',       label:'Order ID',  render:v => <span style={{ color:AC.crimson, fontWeight:700 }}>{v}</span> },
-    { key:'customer', label:'Customer',  render:v => <span style={{ fontWeight:600 }}>{v}</span> },
-    { key:'items',    label:'Items',     render:v => <span style={{ color:'#7a4020' }}>{v} items</span> },
-    { key:'amount',   label:'Amount',    render:v => <span style={{ fontWeight:700, color:AC.crimson }}>₹{v}</span> },
-    { key:'payment',  label:'Payment'   },
-    { key:'status',   label:'Status',    render:(v,r) => (
-      <select value={v} onChange={e => updateStatus(r.id, e.target.value)} style={{ padding:'4px 8px', borderRadius:20, border:'1.5px solid rgba(201,168,76,.25)', fontSize:'.72rem', fontWeight:700, fontFamily:"'DM Sans',sans-serif", outline:'none', background:'white', cursor:'pointer', color:'#1a0400' }}>
-        {statuses.slice(1).map(s => <option key={s}>{s}</option>)}
+  {
+    key: 'customerName',
+    label: 'Customer',
+    render: v => (
+      <span style={{ fontWeight: 600 }}>{v}</span>
+    )
+  },
+
+  {
+    key: 'totalAmount',
+    label: 'Amount',
+    render: v => (
+      <span style={{ fontWeight: 700, color: AC.crimson }}>
+        ₹{v}
+      </span>
+    )
+  },
+
+  {
+    key: 'paymentMethod',
+    label: 'Payment'
+  },
+
+  {
+    key: 'orderStatus',
+    label: 'Status',
+    render: (v, r) => (
+      <select
+        value={v}
+        onChange={e => updateStatus(r._id, e.target.value)}
+        style={{
+          padding: '4px 8px',
+          borderRadius: 20,
+          border: '1.5px solid rgba(201,168,76,.25)',
+          fontSize: '.72rem',
+          fontWeight: 700,
+          background: 'white',
+          cursor: 'pointer'
+        }}
+      >
+        {statuses.slice(1).map(s => (
+          <option key={s}>{s}</option>
+        ))}
       </select>
-    )},
-    { key:'date',     label:'Date',      render:v => <span style={{ color:'#9a6040' }}>{v}</span> },
-    { key:'id',       label:'Actions',   render:(_,r) => <ABtn size="sm" variant="outline" onClick={() => setViewItem(r)}>View</ABtn> },
-  ]
+    )
+  },
+
+  {
+    key: 'createdAt',
+    label: 'Date',
+    render: v => (
+      <span style={{ color: '#9a6040' }}>
+        {new Date(v).toLocaleDateString()}
+      </span>
+    )
+  },
+
+  {
+    key: '_id',
+    label: 'Actions',
+    render: (_, r) => (
+      <ABtn
+        size="sm"
+        variant="outline"
+        onClick={() => setViewItem(r)}
+      >
+        View
+      </ABtn>
+    )
+  }
+]
 
   return (
     <div style={{ padding:'1.5rem' }}>
@@ -153,10 +236,10 @@ export function AOrders() {
         <div style={{ position:'fixed', inset:0, zIndex:9000, background:'rgba(0,0,0,.5)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
           <div style={{ background:'white', borderRadius:20, padding:'2rem', maxWidth:480, width:'100%', boxShadow:'0 30px 80px rgba(0,0,0,.3)', border:'1px solid rgba(201,168,76,.2)' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.5rem' }}>
-              <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:'1.1rem', fontWeight:800, color:'#1a0400', margin:0 }}>Order {viewItem.id}</h2>
+              <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:'1.1rem', fontWeight:800, color:'#1a0400', margin:0 }}>Order {viewItem._id}</h2>
               <button onClick={() => setViewItem(null)} style={{ background:'none', border:'1px solid rgba(201,168,76,.2)', borderRadius:'50%', width:32, height:32, cursor:'pointer', fontSize:14, color:'#7a4020' }}>✕</button>
             </div>
-            {[['Customer',viewItem.customer],['Items',`${viewItem.items} items`],['Amount',`₹${viewItem.amount}`],['Payment',viewItem.payment],['Status',viewItem.status],['Date',viewItem.date]].map(([l,v]) => (
+            {[['Customer', viewItem.customerName],['Phone', viewItem.phone],['Amount', `₹${viewItem.totalAmount}`],['Payment', viewItem.paymentMethod],['Status', viewItem.orderStatus],['Date', new Date(viewItem.createdAt).toLocaleDateString()]].map(([l,v]) => (
               <div key={l} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:'1px solid rgba(201,168,76,.08)' }}>
                 <span style={{ fontSize:'.82rem', color:'#9a6040' }}>{l}</span>
                 <span style={{ fontSize:'.82rem', fontWeight:600, color:'#1a0400' }}>{v}</span>
@@ -372,7 +455,37 @@ export function ADelivery() {
   const [viewItem, setViewItem] = useState(null)
   const [toast, setToast]       = useState(null)
   const filtered = statusF==='All' ? data : data.filter(d=>d.status===statusF)
-  const updateStatus = (id, status) => { setData(d => d.map(r => r.id===id ? {...r,status} : r)); setToast({ msg:'Delivery status updated', type:'success' }) }
+ const updateStatus = async (id, status) => {
+  try {
+    await fetch(
+  `https://puji-home-foods-backend.onrender.com/api/orders/${id}/status`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderStatus: status,
+        }),
+      }
+    )
+
+    setData(d =>
+      d.map(o =>
+        o._id === id
+          ? { ...o, orderStatus: status }
+          : o
+      )
+    )
+
+    setToast({
+      msg: `Order status updated to ${status}`,
+      type: 'success',
+    })
+  } catch (err) {
+    console.error(err)
+  }
+}
   const columns = [
     { key:'id',       label:'Del ID',   render:v => <span style={{ color:AC.crimson, fontWeight:700 }}>{v}</span> },
     { key:'orderId',  label:'Order ID', render:v => <span style={{ color:'#5b21b6', fontWeight:600 }}>{v}</span> },
@@ -425,7 +538,9 @@ export function AReviews() {
   const [data, setData]       = useState(reviews)
   const [statusF, setStatusF] = useState('All')
   const [toast, setToast]     = useState(null)
-  const filtered = statusF==='All' ? data : data.filter(r=>r.status===statusF)
+  const filtered = statusF==='All'
+  ? data
+  : data.filter(d => d.status===statusF)
   const toggle = (id) => { setData(d => d.map(r => r.id===id ? {...r, status: r.status==='Approved'?'Pending':'Approved'} : r)); setToast({ msg:'Review status updated', type:'success' }) }
   const columns = [
     { key:'product',  label:'Product',  render:v => <span style={{ fontWeight:700, color:'#1a0400' }}>{v}</span> },

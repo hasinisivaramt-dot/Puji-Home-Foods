@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
+import { useAuth } from '../auth/AuthContext'
 import { calculatePrice } from '../utils/calculatePrice'
 import WeightSelector from './WeightSelector'
 
@@ -14,8 +15,9 @@ const C = {
 }
 
 export default function ProductCard({ p, onWishlistClick }) {
-  const { addToCart }                                       = useCart()
-  const { addToWishlist, removeFromWishlist, isWishlisted } = useWishlist()
+  const { addToCart } = useCart()
+const { user, openAuth } = useAuth()
+const { addToWishlist, removeFromWishlist, isWishlisted } = useWishlist()
   const [hov, setHov]     = useState(false)
   const [weight, setWeight] = useState(1000)
   const [qty, setQty]     = useState(1)
@@ -25,11 +27,20 @@ export default function ProductCard({ p, onWishlistClick }) {
   const price  = calculatePrice(Number(p.price), weight)
 
   const handleAdd = (e) => {
-    e.stopPropagation()
-    addToCart(p, weight, qty)
-    setFlash(true)
-    setTimeout(() => setFlash(false), 1200)
+  e.stopPropagation()
+
+  console.log("PRODUCT OBJECT:", p)
+
+  if (!user) {
+    openAuth('picker')
+    return
   }
+
+  addToCart(p, weight, qty)
+
+  setFlash(true)
+  setTimeout(() => setFlash(false), 1200)
+}
 
   const handleWish = (e) => {
     e.stopPropagation()

@@ -138,21 +138,87 @@ export default function CustomerPortal({ setPage, wishlist }) {
                   orders.slice(0, 5).map(order => (
                     <div key={order._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 0', borderBottom: '1px solid #eee' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                        <img src="/images/chicken-pickle.webp" alt={order.products?.[0]?.name} style={{ width: '70px', height: '70px', borderRadius: '10px', objectFit: 'cover' }} />
+                        <OrderProductImage productId={order.products?.[0]?.productId} name={order.products?.[0]?.name} />
                         <div>
                           <h3 style={{ margin: '0 0 8px' }}>Order #{order._id?.slice(-6).toUpperCase()}</h3>
                           <p style={{ margin: '0 0 6px' }}>{order.products?.[0]?.name}</p>
-                          <span style={{ color: '#666' }}>Qty: {order.products?.[0]?.quantity} • ₹{order.totalAmount}</span>
+                          <div>
+  <span style={{ color: '#666' }}>
+    Qty: {order.products?.[0]?.quantity} • ₹{order.totalAmount}
+  </span>
+
+  <div style={{ fontSize: '13px', color: '#666', marginTop: '4px' }}>
+    Payment: {order.paymentMethod}
+  </div>
+
+  <div
+  style={{
+    fontSize: '13px',
+    fontWeight: '600',
+    color:
+      order.paymentStatus === 'Paid'
+        ? 'green'
+        : '#d97706',
+  }}
+>
+  {order.paymentStatus}
+</div>
+
+<div
+  style={{
+    marginTop: '8px',
+    fontSize: '12px',
+    color: '#666',
+    fontWeight: '600'
+  }}
+>
+  {order.orderStatus === 'Pending' &&
+    '🟢 Order Placed'}
+
+  {order.orderStatus === 'Preparing' &&
+    '🟢 Order Placed → 🟡 Preparing'}
+
+  {order.orderStatus === 'Out for Delivery' &&
+    '🟢 Order Placed → 🟡 Preparing → 🚚 Out for Delivery'}
+
+  {order.orderStatus === 'Delivered' &&
+    '🟢 Order Placed → 🟡 Preparing → 🚚 Out for Delivery → ✅ Delivered'}
+
+  {order.orderStatus === 'Cancelled' &&
+    '❌ Order Cancelled'}
+</div>
+</div>
                         </div>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
                         <span style={{ color: '#777', fontSize: '14px' }}>
                           {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
-                        <span style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '.82rem', fontWeight: 600, background: order.orderStatus === 'Delivered' ? '#EAF7EC' : order.orderStatus === 'Shipped' ? '#FFF3DD' : '#E8F0FF', color: order.orderStatus === 'Delivered' ? '#2E8B57' : order.orderStatus === 'Shipped' ? '#C17A00' : '#2A62D5' }}>
+                        <span style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '.82rem', fontWeight: 600, background:
+  order.orderStatus === 'Delivered'
+    ? '#EAF7EC'
+    : order.orderStatus === 'Preparing'
+    ? '#FFF3DD'
+    : order.orderStatus === 'Out for Delivery'
+    ? '#F3E8FF'
+    : order.orderStatus === 'Cancelled'
+    ? '#FEE2E2'
+    : '#E8F0FF',
+
+color:
+  order.orderStatus === 'Delivered'
+    ? '#16A34A'
+    : order.orderStatus === 'Preparing'
+    ? '#D97706'
+    : order.orderStatus === 'Out for Delivery'
+    ? '#7C3AED'
+    : order.orderStatus === 'Cancelled'
+    ? '#DC2626'
+    : '#2563EB' }}>
                           {order.orderStatus}
                         </span>
-                        {order.orderStatus === 'Pending' && (
+                        {(order.orderStatus === 'Pending' ||
+  order.orderStatus === 'Preparing') && (
                           <button onClick={() => handleCancelOrder(order._id)} style={{ padding: '6px 14px', border: 'none', borderRadius: '8px', background: '#c0392b', color: 'white', cursor: 'pointer', fontSize: '.8rem' }}>
                             Cancel Order
                           </button>
@@ -216,6 +282,39 @@ export default function CustomerPortal({ setPage, wishlist }) {
         .active-menu { width:100%; background:#8B0000; color:white; border:none; padding:14px 16px; border-radius:12px; font-size:16px; font-weight:600; text-align:left; margin-bottom:18px; display:flex; align-items:center; }
       `}</style>
     </div>
+  )
+}
+
+function OrderProductImage({ productId, name }) {
+  const [imgSrc, setImgSrc] = useState('/images/logo.png')
+
+  useEffect(() => {
+    if (!productId) return
+    fetch(`https://puji-home-foods-backend.onrender.com/api/products`)
+      .then(res => res.json())
+      .then(allProducts => {
+        const found = allProducts.find(p => String(p._id) === String(productId))
+  || allProducts.find(p => p.name === name)
+        if (found?.image) {
+  setImgSrc(
+    found.image.startsWith('http')
+      ? found.image
+      : found.image.startsWith('/images/')
+      ? found.image
+      : `https://puji-home-foods-backend.onrender.com${found.image}`
+  )
+}
+      })
+      .catch(() => {})
+  }, [productId])
+
+  return (
+    <img
+      src={imgSrc}
+      alt={name || 'Product'}
+      onError={e => { e.target.src = '/images/logo.png' }}
+      style={{ width: '70px', height: '70px', borderRadius: '10px', objectFit: 'cover', background: '#f5ece7' }}
+    />
   )
 }
 
