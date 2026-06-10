@@ -203,6 +203,7 @@ function SectionDivider() {
 // ── Navbar ────────────────────────────────────────────────────────
 function Navbar({ onCartClick, page, setPage }) {
   const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const { totalItems } = useCart()
 
   useEffect(() => {
@@ -228,11 +229,47 @@ function Navbar({ onCartClick, page, setPage }) {
         onClick={() => setPage('home')}
         style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}
       >
-        <img src={IMG.logo} alt="Puji Home Foods" style={{ height: 52, width: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(201,168,76,.4))' }} />
+        <img
+  src={IMG.logo}
+  alt="Puji Home Foods"
+  style={{
+    height: window.innerWidth < 768 ? 40 : 52,
+    width: 'auto',
+    objectFit: 'contain',
+    filter: 'drop-shadow(0 0 8px rgba(201,168,76,.4))'
+  }}
+/>
       </a>
 
+      {/* Hamburger — mobile only */}
+      <button
+        className="mobile-menu-btn"
+        onClick={() => setMenuOpen(o => !o)}
+        style={{
+          display: 'none',
+          background: 'none',
+          border: 'none',
+          color: '#F5ECD7',
+          fontSize: '1.6rem',
+          cursor: 'pointer',
+          padding: '4px 8px',
+          lineHeight: 1,
+        }}
+      >
+        {menuOpen ? '✕' : '☰'}
+      </button>
+
       {/* Nav links */}
-      <ul style={{ display: 'flex', gap: 2, listStyle: 'none', margin: 0, padding: 0 }}>
+     <ul
+  className="desktop-menu"
+  style={{
+    display: 'flex',
+    gap: 2,
+    listStyle: 'none',
+    margin: 0,
+    padding: 0
+  }}
+>
         {NAV_LINKS.map(l => {
           const isProducts = l === 'Products'
           const isActive = isProducts && page === 'products'
@@ -265,8 +302,28 @@ function Navbar({ onCartClick, page, setPage }) {
       </ul>
 
       {/* Right */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,.07)', border: '1px solid rgba(201,168,76,.22)', borderRadius: 24, padding: '5px 13px', backdropFilter: 'blur(10px)' }}>
+      <div
+  className="navbar-right"
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: '.5rem',
+    flexShrink: 0
+  }}
+>
+        <div
+  className="search-box"
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    background: 'rgba(255,255,255,.07)',
+    border: '1px solid rgba(201,168,76,.22)',
+    borderRadius: 24,
+    padding: '5px 13px',
+    backdropFilter: 'blur(10px)'
+  }}
+>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input placeholder="Search..." style={{ background: 'none', border: 'none', outline: 'none', color: C.cream, fontSize: '.76rem', width: 100, fontFamily: "'DM Sans', sans-serif" }} />
         </div>
@@ -290,7 +347,56 @@ function Navbar({ onCartClick, page, setPage }) {
         </button>
 
         <UserMenu setPage={setPage} />
+        
       </div>
+
+      {menuOpen && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0,
+          background: 'rgba(26,4,0,.98)',
+          borderBottom: '1px solid rgba(201,168,76,.22)',
+          padding: '1rem',
+          display: 'flex', flexDirection: 'column', gap: 4,
+          zIndex: 999,
+        }}>
+          {NAV_LINKS.map(l => (
+  <a
+    key={l}
+    href="#"
+    onClick={(e) => {
+      e.preventDefault()
+
+      if (l === 'Products') {
+        setPage('products')
+      } else {
+        setPage('home')
+
+        setTimeout(() => {
+          document
+            .getElementById(
+              l.toLowerCase().replace(/\s+/g, '-')
+            )
+            ?.scrollIntoView({ behavior: 'smooth' })
+        }, 100)
+      }
+
+      setMenuOpen(false)
+    }}
+    style={{
+      color: '#F5ECD7',
+      textDecoration: 'none',
+      padding: '10px 12px',
+      borderRadius: 8,
+      fontSize: '.9rem',
+      fontWeight: 500,
+    }}
+  >
+    {l}
+  </a>
+))}
+        </div>
+      )}
+      
     </nav>
   )
 }
@@ -346,7 +452,7 @@ function Hero() {
 
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(108deg,rgba(26,4,0,.93) 0%,rgba(61,0,0,.78) 42%,rgba(61,0,0,.22) 68%,rgba(0,0,0,.05) 100%)' }} />
 
-      <div style={{ position: 'relative', zIndex: 2, padding: '0 5rem', maxWidth: 660, marginTop: 30 }}>
+      <div style={{ position: 'relative', zIndex: 2, padding: '0 clamp(1.5rem, 5vw, 5rem)', maxWidth: 660, marginTop: 30 }}>
         <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.35rem', fontStyle: 'italic', fontWeight: 300, color: C.goldL, letterSpacing: 1, marginBottom: '.55rem', animation: 'fadeUp .8s ease both', textShadow: '0 0 20px rgba(201,168,76,.3)' }}>
           Authentic Homemade
         </p>
@@ -905,7 +1011,7 @@ function Footer() {
   return (
     <footer id="footer" style={{ background: `linear-gradient(180deg,${C.brown} 0%,#080100 100%)`, borderTop: '1px solid rgba(201,168,76,.2)', position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg,transparent,${C.gold},${C.crimson},${C.gold},transparent)`, animation: 'shimmerLine 3s ease-in-out infinite' }} />
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '68px 2rem 48px', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.5fr', gap: '3rem' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '68px 2rem 48px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '2rem' }}>
 
         {/* Brand */}
         <div>

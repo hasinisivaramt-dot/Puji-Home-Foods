@@ -65,3 +65,123 @@ body {
   margin-bottom: 12px;
   font-size: 15px;
 }
+/* =========================
+   TABLET VIEW
+========================= */
+@media (max-width: 1024px) {
+
+  .sidebar-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .mobile-padding {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .mobile-title {
+    font-size: 2.2rem !important;
+    text-align: center !important;
+  }
+}
+
+/* =========================
+   MOBILE VIEW
+========================= */
+@media (max-width: 768px) {
+
+  body {
+    overflow-x: hidden;
+  }
+
+  .sidebar-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .product-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mobile-padding {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .mobile-title {
+    font-size: 1.8rem !important;
+    text-align: center !important;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  button {
+    touch-action: manipulation;
+  }
+}
+
+/* =========================
+   SMALL MOBILE DEVICES
+========================= */
+@media (max-width: 480px) {
+
+  .mobile-title {
+    font-size: 1.5rem !important;
+  }
+
+  .mobile-padding {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+}
+@media (max-width: 768px) {
+
+  .desktop-menu {
+    display: none !important;
+  }
+
+  .mobile-menu-btn {
+    display: block !important;
+  }
+
+  .navbar-right input {
+    display: none;
+  }
+
+}
+
+@media (min-width: 769px) {
+
+  .mobile-menu-btn,
+  .mobile-menu {
+    display: none !important;
+  }
+
+}
+@media (max-width: 768px) {
+  .search-box {
+    display: none !important;
+  }
+}
