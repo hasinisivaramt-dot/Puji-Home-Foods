@@ -17,6 +17,9 @@ import Wishlist from './pages/Wishlist'
 import CustomerPortal from './pages/CustomerPortal'
 import AdminDashboard from './admin/AdminDashboard'
 import EditProfile from './pages/EditProfile'
+import { Routes, Route } from "react-router-dom";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 // ── Color tokens ─────────────────────────────────────────────────
 const C = {
@@ -1230,6 +1233,7 @@ const myOrders = data.filter(o => {
               {order.products.map((p, i) => (
                 <div key={i} style={{ display: 'flex', gap: 12, padding: '10px 0', borderTop: '1px solid #f0e6d3' }}>
                   <div style={{ flex: 1 }}>
+                    
                     <p style={{ margin: 0, fontWeight: 600, color: '#1a0400' }}>{p.name}</p>
                     <p style={{ margin: '3px 0 0', fontSize: '.82rem', color: '#9a6040' }}>
                       Weight: {p.weight}g · Qty: {p.quantity} · ₹{p.price}
@@ -1252,6 +1256,15 @@ const myOrders = data.filter(o => {
 
 // ── AppInner ──────────────────────────────────────────────────────
 function AppInner({ page, setPage }) {
+  const path = window.location.pathname;
+
+if (path === "/forgot-password") {
+  return <ForgotPassword />;
+}
+
+if (path.startsWith("/reset-password/")) {
+  return <ResetPassword />;
+}
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [searchTerm, setSearchTerm] = useState('')
   const [products, setProducts] = useState([])

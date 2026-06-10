@@ -188,13 +188,46 @@ function CustomerAuth({ onSuccess }) {
   }
 
   const handleForgot = async () => {
-    if (!validateEmail(forgotEmail)) { setForgotError('Enter a valid email address'); return }
-    setLoading(true)
-    await new Promise(r => setTimeout(r, 1000))
-    setLoading(false)
-    showToast('Reset link sent! Check your inbox 📧')
-    setTimeout(() => setTab('login'), 1500)
+  if (!validateEmail(forgotEmail)) {
+    setForgotError('Enter a valid email address');
+    return;
   }
+
+  setLoading(true);
+
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/users/forgot-password",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: forgotEmail,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message);
+    }
+    showToast("Sending reset email...");
+
+    showToast("Reset link sent! Check your inbox 📧");
+
+    setTimeout(() => {
+      setTab("login");
+    }, 1500);
+
+  } catch (error) {
+    setForgotError(error.message || "Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div>

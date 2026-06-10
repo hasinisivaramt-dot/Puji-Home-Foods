@@ -22,6 +22,7 @@ const C = {
 export default function CustomerPortal({ setPage, wishlist }) {
   const { user, logout } = useAuth()
   const [orders, setOrders] = useState([])
+  const [selectedOrder, setSelectedOrder] = useState(null)
 
   useEffect(() => {
     const userId = user?.id || user?._id
@@ -136,7 +137,18 @@ export default function CustomerPortal({ setPage, wishlist }) {
                   </div>
                 ) : (
                   orders.slice(0, 5).map(order => (
-                    <div key={order._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 0', borderBottom: '1px solid #eee' }}>
+  <div
+    key={order._id}
+    onClick={() => setSelectedOrder(order)}
+    style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '20px 0',
+      borderBottom: '1px solid #eee',
+      cursor: 'pointer'
+    }}
+  > 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                         <OrderProductImage productId={order.products?.[0]?.productId} name={order.products?.[0]?.name} />
                         <div>
@@ -267,6 +279,102 @@ color:
           </div>
         </div>
       </div>
+      {selectedOrder && (
+  <div
+    onClick={() => setSelectedOrder(null)}
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0,0,0,0.6)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 9999
+    }}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      style={{
+        background: '#fff',
+        width: '700px',
+        maxHeight: '85vh',
+        overflowY: 'auto',
+        padding: '25px',
+        borderRadius: '16px'
+      }}
+    >
+      <h2>
+        Order #{selectedOrder._id.slice(-6).toUpperCase()}
+      </h2>
+
+      <p><b>Name:</b> {selectedOrder.customerName}</p>
+      <p><b>Phone:</b> {selectedOrder.phone}</p>
+      <p><b>Address:</b> {selectedOrder.address}</p>
+
+      <p><b>Payment Method:</b> {selectedOrder.paymentMethod}</p>
+      <p><b>Payment Status:</b> {selectedOrder.paymentStatus}</p>
+      <p><b>Order Status:</b> {selectedOrder.orderStatus}</p>
+
+      <hr />
+
+      {selectedOrder.products?.map((product, index) => (
+        
+        <div
+          key={index}
+          style={{
+            display: 'flex',
+            gap: '15px',
+            marginBottom: '15px'
+          }}
+        >
+          <div style={{ color: 'red', fontSize: '12px' }}>
+  {JSON.stringify(product.image)}
+</div>
+          <img
+  src={
+    product.image?.startsWith('http')
+      ? product.image
+      : `https://puji-home-foods-backend.onrender.com${product.image}`
+  }
+            alt={product.name}
+            style={{
+              width: '80px',
+              height: '80px',
+              objectFit: 'cover',
+              borderRadius: '10px'
+            }}
+          />
+
+          <div>
+            <h4>{product.name}</h4>
+            <p>Weight: {product.weight}</p>
+            <p>Quantity: {product.quantity}</p>
+            <p>₹{product.price}</p>
+          </div>
+        </div>
+      ))}
+
+      <h3>Total Amount: ₹{selectedOrder.totalAmount}</h3>
+
+      <button
+        onClick={() => setSelectedOrder(null)}
+        style={{
+          background: '#8B1A1A',
+          color: 'white',
+          border: 'none',
+          padding: '10px 20px',
+          borderRadius: '8px',
+          cursor: 'pointer'
+        }}
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)}
 
       <footer style={{ background: '#3D0000', color: 'white', marginTop: '40px', padding: '35px 20px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', textAlign: 'center', gap: '12px' }}>
