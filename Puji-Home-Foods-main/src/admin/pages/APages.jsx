@@ -107,7 +107,7 @@ export function ACategories() {
 export function AOrders() {
   const [data, setData] = useState([])
   useEffect(() => {
-  fetch('https://puji-home-foods-backend.onrender.com/api/orders')
+  fetch('http://localhost:5000/api/orders')
     .then(res => res.json())
     .then(data => {
       setData(data)
@@ -132,7 +132,7 @@ export function AOrders() {
   const updateStatus = async (id, status) => {
     try {
       await fetch(
-        `https://puji-home-foods-backend.onrender.com/api/orders/${id}/status`,
+        `http://localhost:5000/api/orders/${id}/status`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -458,7 +458,7 @@ export function ADelivery() {
  const updateStatus = async (id, status) => {
   try {
     await fetch(
-  `https://puji-home-foods-backend.onrender.com/api/orders/${id}/status`,
+  `http://localhost:5000/api/orders/${id}/status`,
       {
         method: 'PUT',
         headers: {

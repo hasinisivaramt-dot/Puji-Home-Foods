@@ -90,6 +90,7 @@ export default function Checkout({ onBack, onSuccess, onFailure }) {
 
       const orderData = {
         customerName: form.name,
+        email: user?.email || "",
         phone: form.phone,
         address: `${form.address}, ${form.city}, ${form.state} - ${form.pincode}`,
         products: cart.map(item => ({
@@ -107,7 +108,7 @@ orderStatus: 'Pending',
         userId: userId,
       }
 
-      const res = await fetch('https://puji-home-foods-backend.onrender.com/api/orders', {
+      const res = await fetch('http://localhost:5000/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData),
