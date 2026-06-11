@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { StatCard, Card, Badge, ABtn, AC, Icon } from '../components/AdminShared'
 import { orders, adminProducts, revenueData, ordersData, topProducts, categoryData } from '../data/adminData'
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
@@ -6,9 +6,26 @@ import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, X
 const PIE_COLORS = [AC.crimson, AC.gold, '#5b21b6', '#1e40af']
 
 export default function Dashboard({ onNav }) {
-  const totalRevenue = orders.filter(o => o.status === 'Delivered').reduce((s, o) => s + o.amount, 0)
-  const pendingCount = orders.filter(o => o.status === 'Pending').length
-  const lowStock     = adminProducts.filter(p => p.stock <= 10)
+  const [orders, setOrders]     = useState([])
+  const [products, setProducts] = useState([])
+  const [users, setUsers] = useState([])
+
+  useEffect(() => {
+    fetch('https://puji-home-foods-backend.onrender.com/api/orders')
+      .then(r => r.json()).then(d => setOrders(Array.isArray(d) ? d : []))
+      .catch(() => {})
+    fetch('https://puji-home-foods-backend.onrender.com/api/products')
+      .then(r => r.json()).then(d => setProducts(Array.isArray(d) ? d : []))
+      .catch(() => {})
+      fetch('https://puji-home-foods-backend.onrender.com/api/users')
+  .then(r => r.json())
+  .then(d => setUsers(Array.isArray(d) ? d : []))
+  .catch(() => {})
+  }, [])
+
+  const totalRevenue = orders.filter(o => o.orderStatus === 'Delivered').reduce((s, o) => s + (o.totalAmount||0), 0)
+  const pendingCount = orders.filter(o => o.orderStatus === 'Pending').length
+  const lowStock     = products.filter(p => (p.stock||0) <= 10)
   const recentOrders = orders.slice(0, 6)
 
   return (
@@ -18,8 +35,8 @@ export default function Dashboard({ onNav }) {
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:'1rem' }}>
         <StatCard label="Total Orders"    value={orders.length}                         icon={<Icon name="orders"    size={22} color="white" />} trend="12%" trendUp />
         <StatCard label="Total Revenue"   value={`₹${(totalRevenue/1000).toFixed(1)}k`} icon={<Icon name="money"     size={22} color="white" />} color={`linear-gradient(135deg,${AC.gold},#b8962a)`} trend="8%" trendUp />
-        <StatCard label="Total Products"  value={adminProducts.length}                  icon={<Icon name="products"  size={22} color="white" />} color="linear-gradient(135deg,#5b21b6,#4c1d95)" trend="3%" trendUp />
-        <StatCard label="Total Customers" value={42}                                    icon={<Icon name="users"     size={22} color="white" />} color="linear-gradient(135deg,#1e40af,#1e3a8a)" trend="5%" trendUp />
+        <StatCard label="Total Products"  value={products.length}                  icon={<Icon name="products"  size={22} color="white" />} color="linear-gradient(135deg,#5b21b6,#4c1d95)" trend="3%" trendUp />
+        <StatCard label="Total Customers" value={users.length}                                    icon={<Icon name="users"     size={22} color="white" />} color="linear-gradient(135deg,#1e40af,#1e3a8a)" trend="5%" trendUp />
         <StatCard label="Pending Orders"  value={pendingCount}                          icon={<Icon name="clock"     size={22} color="white" />} color="linear-gradient(135deg,#92400e,#78350f)" trend="2%" />
         <StatCard label="Best Seller"     value="Chicken Pickle"                        icon={<Icon name="star"      size={22} color="white" />} color="linear-gradient(135deg,#166534,#14532d)" />
       </div>
@@ -122,11 +139,11 @@ export default function Dashboard({ onNav }) {
                     onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,.04)'}
                     onMouseLeave={e => e.currentTarget.style.background='transparent'}
                   >
-                    <td style={{ padding:'9px 14px', color:AC.crimson, fontWeight:700 }}>{o.id}</td>
-                    <td style={{ padding:'9px 14px', color:'#1a0400' }}>{o.customer}</td>
-                    <td style={{ padding:'9px 14px', color:'#1a0400', fontWeight:600 }}>₹{o.amount}</td>
-                    <td style={{ padding:'9px 14px' }}><Badge status={o.status} /></td>
-                    <td style={{ padding:'9px 14px', color:'#9a6040' }}>{o.date}</td>
+                    <td style={{ padding:'9px 14px', color:AC.crimson, fontWeight:700 }}>{o._id?.slice(-6).toUpperCase()}</td>
+<td style={{ padding:'9px 14px', color:'#1a0400' }}>{o.customerName}</td>
+<td style={{ padding:'9px 14px', color:'#1a0400', fontWeight:600 }}>₹{o.totalAmount}</td>
+<td style={{ padding:'9px 14px' }}><Badge status={o.orderStatus} /></td>
+<td style={{ padding:'9px 14px', color:'#9a6040' }}>{new Date(o.createdAt).toLocaleDateString()}</td>
                   </tr>
                 ))}
               </tbody>

@@ -107,7 +107,7 @@ export function ACategories() {
 export function AOrders() {
   const [data, setData] = useState([])
   useEffect(() => {
-  fetch('http://localhost:5000/api/orders')
+  fetch('https://puji-home-foods-backend.onrender.com/api/orders')
     .then(res => res.json())
     .then(data => {
       setData(data)
@@ -132,7 +132,7 @@ export function AOrders() {
   const updateStatus = async (id, status) => {
     try {
       await fetch(
-        `http://localhost:5000/api/orders/${id}/status`,
+        `https://puji-home-foods-backend.onrender.com/api/orders/${id}/status`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -256,22 +256,30 @@ export function AOrders() {
 // CUSTOMERS
 // ══════════════════════════════════════════════════════════════════
 export function ACustomers() {
+  const [data, setData]         = useState([])
   const [search, setSearch]     = useState('')
   const [viewItem, setViewItem] = useState(null)
-  const filtered = customers.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.email.toLowerCase().includes(search.toLowerCase())
+
+  useEffect(() => {
+    fetch('https://puji-home-foods-backend.onrender.com/api/users')
+      .then(r => r.json())
+      .then(d => setData(Array.isArray(d) ? d : []))
+      .catch(() => setData([]))
+  }, [])
+
+  const filtered = data.filter(c =>
+    (c.name||'').toLowerCase().includes(search.toLowerCase()) ||
+    (c.email||'').toLowerCase().includes(search.toLowerCase())
   )
+
   const columns = [
-    { key:'name',   label:'Name',        render:v => <span style={{ fontWeight:700, color:'#1a0400' }}>{v}</span> },
-    { key:'email',  label:'Email',       render:v => <span style={{ color:'#5a2e10' }}>{v}</span> },
-    { key:'phone',  label:'Phone'       },
-    { key:'orders', label:'Orders',      render:v => <span style={{ fontWeight:700, color:AC.crimson }}>{v}</span> },
-    { key:'spent',  label:'Total Spent', render:v => <span style={{ fontWeight:700 }}>₹{v.toLocaleString()}</span> },
-    { key:'joined', label:'Joined',      render:v => <span style={{ color:'#9a6040' }}>{v}</span> },
-    { key:'status', label:'Status',      render:v => <Badge status={v} /> },
-    { key:'id',     label:'Actions',     render:(_,r) => <ABtn size="sm" variant="outline" onClick={() => setViewItem(r)}>View</ABtn> },
+    { key:'name',      label:'Name',        render:v => <span style={{ fontWeight:700, color:'#1a0400' }}>{v}</span> },
+    { key:'email',     label:'Email',       render:v => <span style={{ color:'#5a2e10' }}>{v}</span> },
+    { key:'phone',     label:'Phone'       },
+    { key:'createdAt', label:'Joined',      render:v => <span style={{ color:'#9a6040' }}>{new Date(v).toLocaleDateString()}</span> },
+    { key:'_id',       label:'Actions',     render:(_,r) => <ABtn size="sm" variant="outline" onClick={() => setViewItem(r)}>View</ABtn> },
   ]
+
   return (
     <div style={{ padding:'1.5rem' }}>
       <Card>
@@ -287,10 +295,7 @@ export function ACustomers() {
               <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:'1.1rem', fontWeight:800, color:'#1a0400', margin:0 }}>Customer Details</h2>
               <button onClick={() => setViewItem(null)} style={{ background:'none', border:'1px solid rgba(201,168,76,.2)', borderRadius:'50%', width:32, height:32, cursor:'pointer', fontSize:14, color:'#7a4020' }}>✕</button>
             </div>
-            <div style={{ width:60, height:60, borderRadius:'50%', background:`linear-gradient(135deg,${AC.crimson},${AC.darkRed})`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.4rem', fontWeight:800, color:'white', margin:'0 auto 1.2rem', border:`2px solid ${AC.gold}` }}>
-              {viewItem.name.charAt(0)}
-            </div>
-            {[['Name',viewItem.name],['Email',viewItem.email],['Phone',viewItem.phone],['Total Orders',viewItem.orders],['Total Spent',`₹${viewItem.spent.toLocaleString()}`],['Member Since',viewItem.joined],['Status',viewItem.status]].map(([l,v]) => (
+            {[['Name',viewItem.name],['Email',viewItem.email],['Phone',viewItem.phone||'N/A'],['Joined',new Date(viewItem.createdAt).toLocaleDateString()]].map(([l,v]) => (
               <div key={l} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:'1px solid rgba(201,168,76,.08)' }}>
                 <span style={{ fontSize:'.82rem', color:'#9a6040' }}>{l}</span>
                 <span style={{ fontSize:'.82rem', fontWeight:600, color:'#1a0400' }}>{v}</span>
@@ -458,7 +463,7 @@ export function ADelivery() {
  const updateStatus = async (id, status) => {
   try {
     await fetch(
-  `http://localhost:5000/api/orders/${id}/status`,
+  `https://puji-home-foods-backend.onrender.com/api/orders/${id}/status`,
       {
         method: 'PUT',
         headers: {
