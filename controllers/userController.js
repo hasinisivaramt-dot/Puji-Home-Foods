@@ -71,14 +71,14 @@ const loginUser = async (req, res) => {
     }
 
     const token = jwt.sign(
-      {
-        id: user._id,
-      },
-      "secretkey",
-      {
-        expiresIn: "7d",
-      }
-    );
+  {
+    id: user._id,
+  },
+  process.env.JWT_SECRET,
+  {
+    expiresIn: "7d",
+  }
+);
 
     res.status(200).json({
       message: "Login Successful",
@@ -252,6 +252,17 @@ const resetPassword = async (req, res) => {
   }
 };
 
+// Get All Users (Admin)
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select('-password').sort({ createdAt: -1 })
+    res.status(200).json(users)
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ message: 'Server Error' })
+  }
+}
+
 module.exports = {
   registerUser,
   loginUser,
@@ -259,4 +270,5 @@ module.exports = {
   updateProfile,
   forgotPassword,
   resetPassword,
+  getAllUsers,
 };

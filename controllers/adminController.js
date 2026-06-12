@@ -26,14 +26,14 @@ const loginAdmin = async (req, res) => {
 
     // Create token
     const token = jwt.sign(
-      {
-        id: admin._id,
-      },
-      "secretkey",
-      {
-        expiresIn: "7d",
-      }
-    );
+  {
+    id: admin._id,
+  },
+  process.env.JWT_SECRET,
+  {
+    expiresIn: "7d",
+  }
+);
 
     res.status(200).json({
       message: "Login successful",
