@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from './AuthContext'
 import { api } from './AuthContext'
-import { getAdminCode } from '../admin/data/adminCode'
+
 
 // ── Theme ─────────────────────────────────────────────────────────
 const C = {
@@ -87,7 +87,7 @@ function Divider() {
 // ── Toast ─────────────────────────────────────────────────────────
 function Toast({ msg, type }) {
   return (
-    <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 99999, background: type === 'success' ? '#1e4d2b' : '#7a1a1a', color: 'white', padding: '12px 24px', borderRadius: 50, fontSize: '.84rem', fontWeight: 600, boxShadow: '0 8px 30px rgba(0,0,0,.3)', border: `1px solid ${type === 'success' ? 'rgba(46,160,67,.4)' : 'rgba(201,168,76,.3)'}`, animation: 'fadeUp .3s ease both', whiteSpace: 'nowrap' }}>{msg}</div>
+    <div style={{ position: 'fixed', top: 90, left: '50%', transform: 'translateX(-50%)', zIndex: 99999, background: type === 'success' ? '#1e4d2b' : '#7a1a1a', color: 'white', padding: '12px 24px', borderRadius: 50, fontSize: '.84rem', fontWeight: 600, boxShadow: '0 8px 30px rgba(0,0,0,.3)', border: `1px solid ${type === 'success' ? 'rgba(46,160,67,.4)' : 'rgba(201,168,76,.3)'}`, animation: 'fadeUp .3s ease both', whiteSpace: 'nowrap' }}>{msg}</div>
   )
 }
 
@@ -104,8 +104,11 @@ function ErrorBanner({ msg }) {
 // ══════════════════════════════════════════════════════════════════
 // CUSTOMER AUTH  (now with real API calls)
 // ══════════════════════════════════════════════════════════════════
-function CustomerAuth({ onSuccess }) {
-  const [tab, setTab]         = useState('login')
+function CustomerAuth({ onSuccess, initialTab = 'login' }) {
+  const [tab, setTab] = useState(initialTab)
+  useEffect(() => {
+  setTab(initialTab)
+}, [initialTab])
   const [loading, setLoading] = useState(false)
   const [toast, setToast]     = useState(null)
   const [serverError, setServerError] = useState('')
@@ -197,31 +200,17 @@ function CustomerAuth({ onSuccess }) {
 
   try {
     const response = await fetch(
-      "http://localhost:5000/api/users/forgot-password",
+      "https://puji-home-foods-backend.onrender.com/api/users/forgot-password",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: forgotEmail,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail }),
       }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message);
-    }
-    showToast("Sending reset email...");
-
-    showToast("Reset link sent! Check your inbox 📧");
-
-    setTimeout(() => {
-      setTab("login");
-    }, 1500);
-
+    )
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.message)
+    showToast("Reset link sent! Check your inbox 📧")
+    setTimeout(() => setTab("login"), 1500)
   } catch (error) {
     setForgotError(error.message || "Something went wrong");
   } finally {
@@ -325,8 +314,12 @@ function CustomerAuth({ onSuccess }) {
 // ══════════════════════════════════════════════════════════════════
 // ADMIN AUTH  (unchanged — uses admin code, not backend)
 // ══════════════════════════════════════════════════════════════════
-function AdminAuth({ onSuccess }) {
-  const [tab, setTab]         = useState('login')
+function AdminAuth({ onSuccess, initialTab = 'login' }) {
+  const [tab, setTab] = useState(initialTab)
+
+  useEffect(() => {
+    setTab(initialTab)
+  }, [initialTab])
   const [loading, setLoading] = useState(false)
   const [toast, setToast]     = useState(null)
 
@@ -352,27 +345,86 @@ function AdminAuth({ onSuccess }) {
     if (!validatePhone(signData.phone))         e.phone    = 'Enter a valid 10-digit phone'
     if (!validatePassword(signData.password))   e.password = 'Password must be at least 6 characters'
     if (signData.password !== signData.confirm) e.confirm  = 'Passwords do not match'
-    if (signData.code !== getAdminCode())       e.code     = 'Invalid Admin Access Code'
+    
     return e
   }
 
   const handleLogin = async () => {
-    const e = validateAdminLogin(); if (Object.keys(e).length) { setLoginErrors(e); return }
-    setLoading(true)
-    await new Promise(r => setTimeout(r, 1200))
-    setLoading(false)
-    onSuccess({ name: 'Admin', email: loginData.email, role: 'admin' }, null)
-    showToast('Admin access granted 🛡️')
+  const e = validateAdminLogin();
+
+  if (Object.keys(e).length) {
+    setLoginErrors(e);
+    return;
   }
 
-  const handleSignup = async () => {
-    const e = validateAdminSignup(); if (Object.keys(e).length) { setSignErrors(e); return }
-    setLoading(true)
-    await new Promise(r => setTimeout(r, 1400))
-    setLoading(false)
-    onSuccess({ name: signData.name, email: signData.email, phone: signData.phone, role: 'admin' }, null)
-    showToast('Admin account created! 🛡️')
+  setLoading(true);
+
+  try {
+    const response = await fetch(
+  "http://localhost:5000/api/admin/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: loginData.email,
+          password: loginData.password,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message);
+    }
+
+    showToast("Admin access granted 🛡️");
+
+    setTimeout(() => {
+      onSuccess(
+        {
+          ...data.admin,
+          role: "admin",
+        },
+        data.token
+      );
+    }, 800);
+
+  } catch (error) {
+  showToast(error.message, "error");
+} finally {
+    setLoading(false);
   }
+};
+
+  const handleSignup = async () => {
+  const e = validateAdminSignup()
+  if (Object.keys(e).length) { setSignErrors(e); return }
+  setLoading(true)
+  try {
+    const response = await fetch('http://localhost:5000/api/invite/register-admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: signData.name,
+        email: signData.email,
+        password: signData.password,
+        code: signData.code,
+      }),
+    })
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.message)
+    showToast('Admin account created successfully 🛡️')
+    setTimeout(() => setTab('login'), 1500)
+  } catch (error) {
+    showToast(error.message || 'Registration failed', 'error')
+  } finally {
+    setLoading(false)
+  }
+}
+
 
   return (
     <div>
@@ -424,10 +476,7 @@ function AdminAuth({ onSuccess }) {
           <Input label="Phone Number" type="tel" value={signData.phone} onChange={v => setSignData(d => ({ ...d, phone: v }))} error={signErrors.phone} placeholder="10-digit mobile number" required />
           <PasswordInput label="Password" value={signData.password} onChange={v => setSignData(d => ({ ...d, password: v }))} error={signErrors.password} placeholder="At least 6 characters" required />
           <PasswordInput label="Confirm Password" value={signData.confirm} onChange={v => setSignData(d => ({ ...d, confirm: v }))} error={signErrors.confirm} placeholder="Re-enter password" required />
-          <div style={{ background: 'rgba(201,168,76,.06)', border: '1px dashed rgba(201,168,76,.35)', borderRadius: 10, padding: '10px 12px', marginBottom: '1rem' }}>
-            <div style={{ fontSize: '.7rem', color: C.gold, fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 6 }}>🔐 Admin Access Code</div>
-            <PasswordInput label="" value={signData.code} onChange={v => setSignData(d => ({ ...d, code: v }))} error={signErrors.code} placeholder="Enter secret admin code" required={false} />
-          </div>
+          <PasswordInput label="Invite Code" value={signData.code} onChange={v => setSignData(d => ({ ...d, code: v }))} error={signErrors.code} placeholder="Enter invite code" required={false} />
           <AuthBtn onClick={handleSignup} loading={loading}>Create Admin Account</AuthBtn>
           <p style={{ textAlign: 'center', fontSize: '.78rem', color: '#9a6040', marginTop: '1rem' }}>
             Already registered?{' '}
@@ -442,7 +491,7 @@ function AdminAuth({ onSuccess }) {
 // ══════════════════════════════════════════════════════════════════
 // PORTAL PICKER
 // ══════════════════════════════════════════════════════════════════
-function PortalPicker({ onSelect }) {
+function PortalPicker({ onSelect, initialTab = 'login' }) {
   const portals = [
     { key: 'customer', icon: (<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>), title: 'Customer Portal', desc: 'Shop, track orders & manage your account' },
     { key: 'admin',    icon: (<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>), title: 'Admin Portal', desc: 'Manage products, orders & operations' },
@@ -457,16 +506,16 @@ function PortalPicker({ onSelect }) {
         <p style={{ fontSize: '.82rem', color: '#9a6040' }}>Select how you'd like to sign in</p>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {portals.map(p => <PortalCard key={p.key} p={p} onSelect={onSelect} />)}
+        {portals.map(p => <PortalCard key={p.key} p={p} onSelect={onSelect} initialTab={initialTab} />)}
       </div>
     </div>
   )
 }
 
-function PortalCard({ p, onSelect }) {
+function PortalCard({ p, onSelect, initialTab = 'login' }) {
   const [hov, setHov] = useState(false)
   return (
-    <div onClick={() => onSelect(p.key)} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+    <div onClick={() => onSelect(p.key, initialTab)} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', padding: '1.2rem 1.4rem', borderRadius: 16, cursor: 'pointer', border: `1.5px solid ${hov ? C.gold : 'rgba(201,168,76,.25)'}`, background: hov ? 'rgba(201,168,76,.06)' : C.offWhite, transition: 'all .3s ease', transform: hov ? 'translateY(-3px)' : 'translateY(0)', boxShadow: hov ? `0 0 0 1.5px ${C.gold}, 0 10px 28px rgba(201,168,76,.14)` : '0 2px 10px rgba(0,0,0,.05)' }}>
       <div style={{ width: 56, height: 56, borderRadius: '50%', background: hov ? `linear-gradient(135deg,${C.crimson},${C.darkRed})` : `linear-gradient(135deg,${C.brown},${C.maroon})`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all .3s', boxShadow: hov ? '0 0 0 3px rgba(201,168,76,.25)' : 'none' }}>
         {p.icon}
@@ -486,12 +535,18 @@ function PortalCard({ p, onSelect }) {
 export default function AuthModal() {
   const { authModal, closeAuth, login } = useAuth()
   const [portal, setPortal] = useState(null)
+  const [initialTab, setInitialTab] = useState('login')
   const overlayRef = useRef(null)
 
   useEffect(() => {
     if (authModal) {
-      if (authModal === 'customer' || authModal === 'admin') setPortal(authModal)
+      if (authModal === 'admin') { setPortal('admin'); setInitialTab('login') }
+      else if (authModal === 'signup') { setPortal('customer'); setInitialTab('signup') }
+      else if (authModal === 'customer') { setPortal('customer'); setInitialTab('login') }
+      else if (authModal === 'picker-signup') { setPortal(null); setInitialTab('signup') }
       else setPortal(null)
+      
+      
     } else {
       setPortal(null)
     }
@@ -547,9 +602,15 @@ export default function AuthModal() {
           </div>
 
           <div style={{ padding: '1.6rem' }}>
-            {!portal               && <PortalPicker onSelect={setPortal} />}
-            {portal === 'customer' && <CustomerAuth onSuccess={handleSuccess} />}
-            {portal === 'admin'    && <AdminAuth    onSuccess={handleSuccess} />}
+            {!portal && <PortalPicker onSelect={(key, tab) => { console.log('portal selected:', key, 'tab:', tab); setPortal(key); setInitialTab(tab) }} initialTab={initialTab} />}
+            {portal === 'customer' && <CustomerAuth onSuccess={handleSuccess} initialTab={initialTab} />}
+            {portal === 'admin' &&
+  <AdminAuth
+    key={initialTab}
+    onSuccess={handleSuccess}
+    initialTab={initialTab}
+  />
+}
           </div>
         </div>
       </div>

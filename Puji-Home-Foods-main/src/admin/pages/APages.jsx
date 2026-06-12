@@ -756,12 +756,43 @@ export function ASettings() {
 // ADMINS
 // ══════════════════════════════════════════════════════════════════
 export function AAdmins() {
-  const [data, setData]       = useState(admins)
-  const [modal, setModal]     = useState(false)
-  const [form, setForm]       = useState({ name:'', email:'', password:'', role:'Admin', status:'Active' })
-  const [editId, setEditId]   = useState(null)
-  const [confirm, setConfirm] = useState(null)
-  const [toast, setToast]     = useState(null)
+  const [data, setData]         = useState(admins)
+const [modal, setModal]       = useState(false)
+const [form, setForm]         = useState({ name:'', email:'', password:'', role:'Admin', status:'Active' })
+const [editId, setEditId]     = useState(null)
+const [confirm, setConfirm]   = useState(null)
+const [toast, setToast]       = useState(null)
+const [inviteModal, setInviteModal] = useState(false)
+const [inviteCode, setInviteCode]   = useState(null)
+const [inviteLoading, setInviteLoading] = useState(false)
+const [copied, setCopied]     = useState(false)
+
+const generateInvite = async () => {
+  setInviteLoading(true)
+  try {
+    console.log('localStorage keys:', Object.keys(localStorage))
+console.log('token value:', localStorage.getItem('token'))
+const token = sessionStorage.getItem('puji_token')
+const res = await fetch('http://localhost:5000/api/invite/generate', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+})
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.message)
+    setInviteCode(data)
+    setInviteModal(true)
+  } catch (err) {
+    setToast({ msg: err.message || 'Failed to generate code', type: 'error' })
+  } finally {
+    setInviteLoading(false)
+  }
+}
+
+const copyCode = () => {
+  navigator.clipboard.writeText(inviteCode.code)
+  setCopied(true)
+  setTimeout(() => setCopied(false), 2000)
+}
 
   const open = (row) => {
     if (row) { setForm({name:row.name,email:row.email,password:'',role:row.role,status:row.status}); setEditId(row.id) }
@@ -794,11 +825,33 @@ export function AAdmins() {
       {toast   && <Toast {...toast} onClose={()=>setToast(null)} />}
       {confirm && <ConfirmModal msg="Remove this admin?" onConfirm={()=>{ setData(d=>d.filter(r=>r.id!==confirm)); setConfirm(null); setToast({msg:'Admin removed',type:'error'}) }} onCancel={()=>setConfirm(null)} />}
       <Card>
-        <div style={{ padding:'1.2rem 1.4rem', borderBottom:'1px solid rgba(201,168,76,.1)', display:'flex', justifyContent:'flex-end' }}>
-          <ABtn variant="gold" onClick={()=>open(null)}>+ Add Admin</ABtn>
-        </div>
+        <div style={{ padding:'1.2rem 1.4rem', borderBottom:'1px solid rgba(201,168,76,.1)', display:'flex', justifyContent:'flex-end', gap:'1rem' }}>
+  <ABtn variant="outline" onClick={generateInvite} disabled={inviteLoading}>
+    {inviteLoading ? 'Generating…' : '🔗 Generate Invite Code'}
+  </ABtn>
+  <ABtn variant="gold" onClick={()=>open(null)}>+ Add Admin</ABtn>
+</div>
         <DataTable columns={columns} data={data} />
       </Card>
+      {inviteModal && inviteCode && (
+        <div style={{ position:'fixed', inset:0, zIndex:9000, background:'rgba(0,0,0,.5)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
+          <div style={{ background:'white', borderRadius:20, padding:'2rem', maxWidth:420, width:'100%', boxShadow:'0 30px 80px rgba(0,0,0,.3)', border:'1px solid rgba(201,168,76,.2)', textAlign:'center' }}>
+            <div style={{ width:56, height:56, borderRadius:'50%', background:'rgba(201,168,76,.1)', border:'2px solid rgba(201,168,76,.3)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 1rem', fontSize:'1.5rem' }}>🔗</div>
+            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:'1.1rem', fontWeight:800, color:'#1a0400', marginBottom:6 }}>Invite Code Generated</div>
+            <p style={{ fontSize:'.82rem', color:'#9a6040', marginBottom:'1.5rem' }}>Share this code with the new admin. It expires in 24 hours and can only be used once.</p>
+            <div style={{ background:'rgba(201,168,76,.06)', border:'1px dashed rgba(201,168,76,.4)', borderRadius:12, padding:'1rem 1.4rem', marginBottom:'1.5rem', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'1rem' }}>
+              <span style={{ fontFamily:'monospace', fontSize:'1.2rem', fontWeight:800, color:'#8B1A1A', letterSpacing:'3px' }}>{inviteCode.code}</span>
+              <button onClick={copyCode} style={{ background: copied ? '#166534' : 'rgba(201,168,76,.15)', border:'1px solid rgba(201,168,76,.3)', borderRadius:8, padding:'6px 14px', color: copied ? 'white' : '#8B1A1A', fontSize:'.76rem', fontWeight:700, cursor:'pointer', transition:'all .2s', whiteSpace:'nowrap' }}>
+                {copied ? '✓ Copied!' : 'Copy'}
+              </button>
+            </div>
+            <div style={{ fontSize:'.75rem', color:'#9a6040', marginBottom:'1.5rem' }}>
+              Expires: {new Date(inviteCode.expiresAt).toLocaleString()}
+            </div>
+            <ABtn variant="gold" onClick={() => { setInviteModal(false); setInviteCode(null) }}>Done</ABtn>
+          </div>
+        </div>
+      )}
       {modal && (
         <Modal title={editId?'Edit Admin':'Add Admin'} onClose={()=>setModal(false)} onSave={save}>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem' }}>

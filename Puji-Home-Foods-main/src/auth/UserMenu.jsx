@@ -34,7 +34,7 @@ export default function UserMenu({ setPage }) {
         </button>
 
         <button
-          onClick={() => openAuth('picker')}   // always open at portal picker
+  onClick={() => openAuth('picker-signup')}
           style={{ background: `linear-gradient(135deg,${C.crimson},${C.darkRed})`, border: '1px solid rgba(201,168,76,.28)', color: 'white', padding: '6px 15px', borderRadius: 20, fontSize: '.76rem', fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 4px 14px rgba(107,15,15,.4)', transition: 'all .3s' }}
           onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 0 0 1px ${C.gold}, 0 8px 20px rgba(107,15,15,.5)` }}
           onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 14px rgba(107,15,15,.4)' }}

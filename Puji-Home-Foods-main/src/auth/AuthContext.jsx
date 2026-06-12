@@ -108,9 +108,14 @@ export function AuthProvider({ children, onLoginRedirect }) {
   setUser(enriched)
 
     if (token) {
-      localStorage.setItem('puji_token', token)
-      localStorage.setItem('puji_role', enriched.role)
-    }
+  if (enriched.role === 'admin') {
+    sessionStorage.setItem('puji_token', token)
+    sessionStorage.setItem('puji_role', enriched.role)
+  } else {
+    localStorage.setItem('puji_token', token)
+    localStorage.setItem('puji_role', enriched.role)
+  }
+}
 
     setAuthModal(null)
 
