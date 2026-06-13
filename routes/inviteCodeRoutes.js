@@ -1,8 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const { generateInviteCode, registerAdminWithInvite } = require("../controllers/inviteCodeController");
+
+const {
+  generateInviteCode,
+  registerAdminWithInvite,
+} = require("../controllers/inviteCodeController");
+
 const protect = require("../middleware/authMiddleware");
-router.post("/generate", generateInviteCode); // protected
-router.post("/register-admin", registerAdminWithInvite); // public
+
+router.post("/generate", protect, generateInviteCode);
+router.post("/register-admin", registerAdminWithInvite);
 
 module.exports = router;

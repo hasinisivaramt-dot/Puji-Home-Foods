@@ -9,13 +9,16 @@ const generateInviteCode = async (req, res) => {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     console.log('req.user:', req.user);
+    const admin = await Admin.findById(req.user.id);
 
     const inviteCode = await InviteCode.create({
-  code: randomCode,
-  role: "admin",
-  used: false,
-  expiresAt,
-});
+      code: randomCode,
+      role: "admin",
+      used: false,
+      createdBy: req.user.id,
+      createdByName: admin?.name || "Admin",
+      expiresAt,
+    });
 
     res.status(201).json(inviteCode);
   } catch (error) {
