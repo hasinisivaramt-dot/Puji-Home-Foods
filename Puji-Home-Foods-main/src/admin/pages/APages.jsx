@@ -206,14 +206,14 @@ export function AOrders() {
   useEffect(() => {
   const token = localStorage.getItem("puji_token")
 
-  fetch("https://puji-home-foods-backend.onrender.com/api/users", {
+  fetch("https://puji-home-foods-backend.onrender.com/api/orders", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   })
     .then(res => res.json())
     .then(data => {
-      console.log("CUSTOMERS:", data)
+      console.log("ORDERS:", data)
       setData(Array.isArray(data) ? data : [])
     })
     .catch(err => {
@@ -221,6 +221,8 @@ export function AOrders() {
       setData([])
     })
 }, [])
+    
+    
   const [search, setSearch]     = useState('')
   const [statusF, setStatusF]   = useState('All')
   const [viewItem, setViewItem] = useState(null)
@@ -879,14 +881,23 @@ export function AAdmins() {
   const [data, setData] = useState([])
 
   useEffect(() => {
-    const token = localStorage.getItem('puji_token')
-    fetch('https://puji-home-foods-backend.onrender.com/api/admin/all', {
-      headers: { Authorization: `Bearer ${token}` }
+  const token = localStorage.getItem("puji_token")
+
+  fetch("https://puji-home-foods-backend.onrender.com/api/orders", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then(res => res.json())
+    .then(data => {
+      console.log("ORDERS:", data)
+      setData(Array.isArray(data) ? data : [])
     })
-      .then(r => r.json())
-      .then(d => setData(Array.isArray(d) ? d : []))
-      .catch(() => {})
-  }, [])
+    .catch(err => {
+      console.error(err)
+      setData([])
+    })
+}, [])
 const [modal, setModal]       = useState(false)
 const [form, setForm]         = useState({ name:'', email:'', password:'', role:'Admin', status:'Active' })
 const [editId, setEditId]     = useState(null)
