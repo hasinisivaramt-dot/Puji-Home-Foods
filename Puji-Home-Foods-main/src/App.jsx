@@ -20,6 +20,7 @@ import EditProfile from './pages/EditProfile'
 import { Routes, Route } from "react-router-dom";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Settings from './pages/Settings'
 
 // ── Color tokens ─────────────────────────────────────────────────
 const C = {
@@ -1735,130 +1736,19 @@ if (page === 'addresses') {
 if (page === 'settings') {
   return (
     <>
-      <Navbar onCartClick={() => setPage('cart')} />
+      <Navbar
+        page={page}
+        setPage={setPage}
+        onCartClick={() => setPage('cart')}
+      />
 
-      <div
-        style={{
-          minHeight: '100vh',
-          padding: '120px 40px',
-          background: '#F5ECD7',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '1100px',
-            margin: '0 auto',
-          }}
-        >
-          <h1
-            style={{
-              color: '#5C0000',
-              marginBottom: '10px',
-            }}
-          >
-            Account Settings
-          </h1>
+      <Settings setPage={setPage} />
 
-          <p
-            style={{
-              color: '#666',
-              marginBottom: '30px',
-            }}
-          >
-            Manage your profile, security and preferences.
-          </p>
-
-          {/* Profile Settings */}
-          <div className="settings-card">
-            <h2>👤 Profile Information</h2>
-
-            <div className="settings-grid">
-              <input type="text" placeholder="Full Name" />
-
-              <input type="email" placeholder="Email Address" />
-
-              <input type="tel" placeholder="Phone Number" />
-            </div>
-
-            <button className="save-btn">
-              Save Changes
-            </button>
-          </div>
-
-          {/* Password */}
-          <div className="settings-card">
-            <h2>🔒 Change Password</h2>
-
-            <div className="settings-grid">
-              <input type="password" placeholder="Current Password" />
-
-              <input type="password" placeholder="New Password" />
-
-              <input type="password" placeholder="Confirm Password" />
-            </div>
-
-            <button className="save-btn">
-              Update Password
-            </button>
-          </div>
-
-          {/* Notifications */}
-          <div className="settings-card">
-            <h2>🔔 Notifications</h2>
-
-            <label>
-              <input type="checkbox" defaultChecked />
-              Order Updates
-            </label>
-
-            <label>
-              <input type="checkbox" defaultChecked />
-              Promotional Offers
-            </label>
-
-            <label>
-              <input type="checkbox" />
-              Newsletter
-            </label>
-          </div>
-
-          {/* Account Actions */}
-          <div className="settings-card">
-            <h2>⚠️ Account Actions</h2>
-
-            <button
-              style={{
-                background: '#8B0000',
-                color: '#fff',
-                border: 'none',
-                padding: '12px 20px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-              }}
-            >
-              Logout
-            </button>
-          </div>
-
-          <button
-            onClick={() => setPage('portal')}
-            style={{
-              marginTop: '25px',
-              background: '#5C0000',
-              color: '#fff',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-            }}
-          >
-            ← Back to Portal
-          </button>
-        </div>
-      </div>
+      <BackTop />
     </>
   )
 }
+ 
 if (page === 'trackorder') {
   return (
     <>

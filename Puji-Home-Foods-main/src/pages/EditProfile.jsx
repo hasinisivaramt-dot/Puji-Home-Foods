@@ -37,9 +37,12 @@ export default function EditProfile({ setPage }) {
         phone:   form.phone,
         address: form.address,
       })
-      // Update auth context with new user data
+      // ✅ FIX: Update user in context WITHOUT triggering AuthContext redirect
+      // Pass token=null so login() skips localStorage writes, but we manually
+      // call setPage here to navigate correctly
       login({ ...user, ...data.user }, null)
       setSuccess(true)
+      // ✅ FIX: Navigate directly using setPage instead of relying on AuthContext
       setTimeout(() => { setSuccess(false); setPage('portal') }, 1500)
     } catch (err) {
       setError(err.message || 'Failed to update profile')
@@ -74,7 +77,7 @@ export default function EditProfile({ setPage }) {
         )}
         {success && (
           <div style={{ background: '#EAF7EC', border: '1px solid rgba(46,139,87,.3)', borderRadius: 10, padding: '12px 16px', marginBottom: '1.2rem', color: '#2E8B57', fontSize: '.88rem' }}>
-            ✅ Profile updated successfully!
+            ✅ Profile updated successfully! Redirecting...
           </div>
         )}
 

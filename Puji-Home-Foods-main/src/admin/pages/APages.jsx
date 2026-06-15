@@ -46,7 +46,17 @@ function Modal({ title, children, onClose, onSave, saveLabel='Save', loading }) 
 // CATEGORIES
 // ══════════════════════════════════════════════════════════════════
 export function ACategories() {
-  const [data, setData]       = useState(adminCategories)
+  const [data, setData] = useState([])
+
+useEffect(() => {
+  fetch("http://localhost:5000/api/categories")
+    .then(res => res.json())
+    .then(data => {
+      console.log("Categories:", data)
+      setData(data)
+    })
+    .catch(err => console.error(err))
+}, [])
   const [modal, setModal]     = useState(false)
   const [form, setForm]       = useState({ name:'', description:'', status:'Active' })
   const [editId, setEditId]   = useState(null)
@@ -54,16 +64,68 @@ export function ACategories() {
   const [toast, setToast]     = useState(null)
 
   const open = (row) => {
-    if (row) { setForm({ name:row.name, description:row.description, status:row.status }); setEditId(row.id) }
+    if (row) { setForm({ name:row.name, description:row.description, status:row.status }); setEditId(row._id) }
     else     { setForm({ name:'', description:'', status:'Active' }); setEditId(null) }
     setModal(true)
   }
-  const save = () => {
-    if (!form.name.trim()) return
-    if (editId) setData(d => d.map(r => r.id===editId ? {...r,...form} : r))
-    else        setData(d => [...d, {...form, id:`CAT${Date.now()}`, products:0}])
-    setModal(false); setToast({ msg: editId?'Category updated!':'Category added!', type:'success' })
+  const save = async () => {
+  if (!form.name.trim()) return
+
+  try {
+    if (editId) {
+      const res = await fetch(
+        `https://puji-home-foods-backend.onrender.com/api/categories/${editId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(form),
+        }
+      )
+
+      const updated = await res.json()
+
+      setData(d =>
+        d.map(r => (r._id === updated._id ? updated : r))
+      )
+
+      setToast({
+        msg: "Category updated!",
+        type: "success",
+      })
+    } else {
+      const res = await fetch(
+        "https://puji-home-foods-backend.onrender.com/api/categories",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(form),
+        }
+      )
+
+      const newCategory = await res.json()
+
+      setData(d => [...d, newCategory])
+
+      setToast({
+        msg: "Category added!",
+        type: "success",
+      })
+    }
+
+    setModal(false)
+  } catch (err) {
+    console.error(err)
+
+    setToast({
+      msg: "Failed to save category",
+      type: "error",
+    })
   }
+}
 
   const columns = [
     { key:'name',        label:'Name',        render:v => <span style={{ fontWeight:700, color:'#1a0400' }}>{v}</span> },
@@ -73,7 +135,7 @@ export function ACategories() {
     { key:'id',          label:'Actions',     render:(_,r) => (
       <div style={{ display:'flex', gap:6 }}>
         <ABtn size="sm" variant="outline" onClick={() => open(r)}>Edit</ABtn>
-        <ABtn size="sm" variant="primary" onClick={() => setConfirm(r.id)}>Delete</ABtn>
+        <ABtn size="sm" variant="primary" onClick={() => setConfirm(r._id)}>Delete</ABtn>
       </div>
     )},
   ]
@@ -81,7 +143,42 @@ export function ACategories() {
   return (
     <div style={{ padding:'1.5rem' }}>
       {toast   && <Toast {...toast} onClose={() => setToast(null)} />}
-      {confirm && <ConfirmModal msg="Delete this category?" onConfirm={() => { setData(d=>d.filter(r=>r.id!==confirm)); setConfirm(null); setToast({msg:'Deleted',type:'error'}) }} onCancel={() => setConfirm(null)} />}
+      {confirm && (
+  <ConfirmModal
+    msg="Delete this category?"
+    onConfirm={async () => {
+      try {
+        await fetch(
+          `https://puji-home-foods-backend.onrender.com/api/categories/${confirm}`,
+          {
+            method: "DELETE",
+          }
+        )
+
+        setData(d =>
+          d.filter(r => r._id !== confirm)
+        )
+
+        setToast({
+          msg: "Category deleted",
+          type: "success",
+        })
+      } catch (err) {
+        console.error(err)
+
+        setToast({
+          msg: "Delete failed",
+          type: "error",
+        })
+      }
+
+      setConfirm(null)
+    }}
+    onCancel={() => setConfirm(null)}
+  
+
+  />
+)}
       <Card>
         <div style={{ padding:'1.2rem 1.4rem', borderBottom:'1px solid rgba(201,168,76,.1)', display:'flex', justifyContent:'flex-end' }}>
           <ABtn variant="gold" onClick={() => open(null)}>+ Add Category</ABtn>
@@ -107,12 +204,22 @@ export function ACategories() {
 export function AOrders() {
   const [data, setData] = useState([])
   useEffect(() => {
-  fetch('https://puji-home-foods-backend.onrender.com/api/orders')
+  const token = localStorage.getItem("puji_token")
+
+  fetch("https://puji-home-foods-backend.onrender.com/api/users", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
     .then(res => res.json())
     .then(data => {
-      setData(data)
+      console.log("CUSTOMERS:", data)
+      setData(Array.isArray(data) ? data : [])
     })
-    .catch(err => console.error(err))
+    .catch(err => {
+      console.error(err)
+      setData([])
+    })
 }, [])
   const [search, setSearch]     = useState('')
   const [statusF, setStatusF]   = useState('All')
@@ -260,12 +367,24 @@ export function ACustomers() {
   const [search, setSearch]     = useState('')
   const [viewItem, setViewItem] = useState(null)
 
-  useEffect(() => {
-    fetch('https://puji-home-foods-backend.onrender.com/api/users')
-      .then(r => r.json())
-      .then(d => setData(Array.isArray(d) ? d : []))
-      .catch(() => setData([]))
-  }, [])
+ useEffect(() => {
+  const token = localStorage.getItem("puji_token")
+
+  fetch("https://puji-home-foods-backend.onrender.com/api/users", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then(res => res.json())
+    .then(data => {
+      console.log("CUSTOMERS:", data)
+      setData(Array.isArray(data) ? data : [])
+    })
+    .catch(err => {
+      console.error(err)
+      setData([])
+    })
+}, [])
 
   const filtered = data.filter(c =>
     (c.name||'').toLowerCase().includes(search.toLowerCase()) ||
@@ -372,7 +491,7 @@ export function ACoupons() {
   const [toast, setToast]     = useState(null)
 
   const open = (row) => {
-    if (row) { setForm({code:row.code,discount:String(row.discount),type:row.type,minOrder:String(row.minOrder),usageLimit:String(row.usageLimit),validTill:row.validTill,status:row.status}); setEditId(row.id) }
+    if (row) { setForm({code:row.code,discount:String(row.discount),type:row.type,minOrder:String(row.minOrder),usageLimit:String(row.usageLimit),validTill:row.validTill,status:row.status}); setEditId(row._id) }
     else     { setForm({code:'',discount:'',type:'Percentage',minOrder:'',usageLimit:'',validTill:'',status:'Active'}); setEditId(null) }
     setModal(true)
   }
@@ -395,7 +514,7 @@ export function ACoupons() {
     { key:'id',        label:'Actions',   render:(_,r) => (
       <div style={{ display:'flex', gap:6 }}>
         <ABtn size="sm" variant="outline" onClick={() => open(r)}>Edit</ABtn>
-        <ABtn size="sm" variant="primary" onClick={() => setConfirm(r.id)}>Delete</ABtn>
+        <ABtn size="sm" variant="primary" onClick={() => setConfirm(r._id)}>Delete</ABtn>
       </div>
     )},
   ]
@@ -755,8 +874,19 @@ export function ASettings() {
 // ══════════════════════════════════════════════════════════════════
 // ADMINS
 // ══════════════════════════════════════════════════════════════════
+// REPLACE WITH:
 export function AAdmins() {
-  const [data, setData]         = useState(admins)
+  const [data, setData] = useState([])
+
+  useEffect(() => {
+    const token = localStorage.getItem('puji_token')
+    fetch('https://puji-home-foods-backend.onrender.com/api/admin/all', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(r => r.json())
+      .then(d => setData(Array.isArray(d) ? d : []))
+      .catch(() => {})
+  }, [])
 const [modal, setModal]       = useState(false)
 const [form, setForm]         = useState({ name:'', email:'', password:'', role:'Admin', status:'Active' })
 const [editId, setEditId]     = useState(null)
@@ -770,16 +900,30 @@ const [copied, setCopied]     = useState(false)
 const generateInvite = async () => {
   setInviteLoading(true)
   try {
-    console.log('localStorage keys:', Object.keys(localStorage))
-console.log('token value:', localStorage.getItem('token'))
-const token = sessionStorage.getItem('puji_token')
-const res = await fetch('http://localhost:5000/api/invite/generate', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-})
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.message)
-    setInviteCode(data)
+    
+const token = localStorage.getItem('puji_token')
+
+const res = await fetch(
+  'https://puji-home-foods-backend.onrender.com/api/invite/generate',
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
+
+
+
+const result = await res.json();
+
+
+
+if (!res.ok) throw new Error(result.message)
+
+
+setInviteCode(result)
     setInviteModal(true)
   } catch (err) {
     setToast({ msg: err.message || 'Failed to generate code', type: 'error' })
@@ -795,7 +939,7 @@ const copyCode = () => {
 }
 
   const open = (row) => {
-    if (row) { setForm({name:row.name,email:row.email,password:'',role:row.role,status:row.status}); setEditId(row.id) }
+    if (row) { setForm({name:row.name,email:row.email,password:'',role:row.role,status:row.status}); setEditId(row._id) }
     else     { setForm({name:'',email:'',password:'',role:'Admin',status:'Active'}); setEditId(null) }
     setModal(true)
   }

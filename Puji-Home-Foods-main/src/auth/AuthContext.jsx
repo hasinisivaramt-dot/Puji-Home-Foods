@@ -34,7 +34,7 @@ export const api = {
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data.message || 'Login failed')
-    return data // { token, user }
+    return data
   },
 
   getProfile: async () => {
@@ -56,19 +56,31 @@ export const api = {
     if (!res.ok) throw new Error(data.message || 'Update failed')
     return data
   },
+
+  // ✅ NEW: Change password API call
+  changePassword: async ({ currentPassword, newPassword }) => {
+    const res = await fetch(`${BASE}/users/change-password`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify({ currentPassword, newPassword }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.message || 'Password change failed')
+    return data
+  },
 }
 
 // ── Provider ──────────────────────────────────────────────────────
 export function AuthProvider({ children, onLoginRedirect }) {
-  const [user, setUser]               = useState(null)
-  const [authModal, setAuthModal]     = useState(null)
-  const [pendingPage, setPendingPage] = useState(null)
+  const [user, setUser]                     = useState(null)
+  const [authModal, setAuthModal]           = useState(null)
+  const [pendingPage, setPendingPage]       = useState(null)
   const [loadingSession, setLoadingSession] = useState(true)
   const redirectRef = useRef(onLoginRedirect)
 
   useEffect(() => { redirectRef.current = onLoginRedirect }, [onLoginRedirect])
 
-  // ── Restore session from token ────────────────────────────────
+  // ── Restore session from token ──────────────────────────────────
   useEffect(() => {
     const restore = async () => {
       const token = localStorage.getItem('puji_token')
@@ -76,19 +88,40 @@ export function AuthProvider({ children, onLoginRedirect }) {
 
       if (!token) { setLoadingSession(false); return }
 
-      // Admins don't persist — must log in fresh every time
+      // ── Restore admin session ─────────────────────────────────
       if (role === 'admin') {
-        localStorage.removeItem('puji_token')
-        localStorage.removeItem('puji_role')
-        setLoadingSession(false)
+        try {
+          const res = await fetch(`${BASE}/admin/all`, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          if (res.ok) {
+            const savedAdmin = localStorage.getItem('puji_admin')
+            if (savedAdmin) {
+              setUser({ ...JSON.parse(savedAdmin), role: 'admin' })
+            }
+          } else {
+            localStorage.removeItem('puji_token')
+            localStorage.removeItem('puji_role')
+            localStorage.removeItem('puji_admin')
+          }
+        } catch {
+          localStorage.removeItem('puji_token')
+          localStorage.removeItem('puji_role')
+          localStorage.removeItem('puji_admin')
+        } finally {
+          setLoadingSession(false)
+        }
         return
       }
 
+      // ── Restore customer session ──────────────────────────────
       try {
         const profile = await api.getProfile()
         setUser({ ...profile, id: profile._id?.toString(), role: 'customer' })
       } catch {
-        // Token expired or invalid — clear it
         localStorage.removeItem('puji_token')
         localStorage.removeItem('puji_role')
       } finally {
@@ -98,28 +131,34 @@ export function AuthProvider({ children, onLoginRedirect }) {
     restore()
   }, [])
 
-  // ── Login: save token + user ──────────────────────────────────
+  // ── Login ───────────────────────────────────────────────────────
   const login = (userData, token = null) => {
-  const enriched = { 
-    ...userData, 
-    id: userData.id || userData._id,
-    role: userData.role || 'customer' 
-  }
-  setUser(enriched)
+    const enriched = {
+      ...userData,
+      id: userData.id || userData._id,
+      role: userData.role || 'customer',
+    }
+    setUser(enriched)
 
     if (token) {
-  if (enriched.role === 'admin') {
-    sessionStorage.setItem('puji_token', token)
-    sessionStorage.setItem('puji_role', enriched.role)
-  } else {
-    localStorage.setItem('puji_token', token)
-    localStorage.setItem('puji_role', enriched.role)
-  }
-}
+      localStorage.setItem('puji_token', token)
+      localStorage.setItem('puji_role', enriched.role)
+
+      if (enriched.role === 'admin') {
+        localStorage.setItem('puji_admin', JSON.stringify({
+          id:    enriched.id,
+          name:  enriched.name,
+          email: enriched.email,
+        }))
+      }
+    }
 
     setAuthModal(null)
 
-    if (redirectRef.current) {
+    // ✅ FIX: Only redirect when token is provided (real login).
+    // When token=null (profile update), skip redirect so EditProfile/Settings
+    // can handle their own navigation via setPage.
+    if (token && redirectRef.current) {
       if (enriched.role === 'admin') {
         redirectRef.current('admin')
       } else if (pendingPage) {
@@ -131,11 +170,12 @@ export function AuthProvider({ children, onLoginRedirect }) {
     }
   }
 
-  // ── Logout ────────────────────────────────────────────────────
+  // ── Logout ──────────────────────────────────────────────────────
   const logout = () => {
     setUser(null)
     localStorage.removeItem('puji_token')
     localStorage.removeItem('puji_role')
+    localStorage.removeItem('puji_admin')
     if (redirectRef.current) redirectRef.current('home')
   }
 
@@ -165,4 +205,3 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth must be used inside AuthProvider')
   return ctx
 }
-

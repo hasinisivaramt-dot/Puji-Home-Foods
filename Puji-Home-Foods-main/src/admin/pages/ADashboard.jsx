@@ -17,7 +17,10 @@ export default function Dashboard({ onNav }) {
     fetch('https://puji-home-foods-backend.onrender.com/api/products')
       .then(r => r.json()).then(d => setProducts(Array.isArray(d) ? d : []))
       .catch(() => {})
-      fetch('https://puji-home-foods-backend.onrender.com/api/users')
+      const token = localStorage.getItem('puji_token')
+fetch('https://puji-home-foods-backend.onrender.com/api/users', {
+  headers: { Authorization: `Bearer ${token}` }
+})
   .then(r => r.json())
   .then(d => setUsers(Array.isArray(d) ? d : []))
   .catch(() => {})
@@ -135,7 +138,7 @@ export default function Dashboard({ onNav }) {
               </thead>
               <tbody>
                 {recentOrders.map(o => (
-                  <tr key={o.id} style={{ borderBottom:'1px solid rgba(201,168,76,.07)' }}
+  <tr key={o._id} style={{ borderBottom:'1px solid rgba(201,168,76,.07)' }}
                     onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,.04)'}
                     onMouseLeave={e => e.currentTarget.style.background='transparent'}
                   >

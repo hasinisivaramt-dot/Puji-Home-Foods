@@ -17,7 +17,7 @@ export const AC = {
 
 // ── SVG Icon Library ──────────────────────────────────────────────
 export function Icon({ name, size = 18, color = 'currentColor', strokeWidth = 1.8 }) {
-  const s = { width: size, height: size, flexShrink: 0 }
+  const s = { width: size, height: size, style: { flexShrink: 0 } }
   const p = { fill: 'none', stroke: color, strokeWidth, strokeLinecap: 'round', strokeLinejoin: 'round' }
   const icons = {
     dashboard:  <svg {...s} viewBox="0 0 24 24" {...p}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
