@@ -6,6 +6,7 @@ const {
   loginUser,
   getProfile,
   updateProfile,
+  changePassword,
   forgotPassword,
   resetPassword,
   getAllUsers,
@@ -23,6 +24,7 @@ router.post("/reset-password/:token", resetPassword);
 // User Routes
 router.get("/profile", protect, getProfile);
 router.put("/profile", protect, updateProfile);
+router.put("/change-password", protect, changePassword);
 
 // Admin Routes
 router.get("/", protect, adminOnly, getAllUsers);
