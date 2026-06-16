@@ -23,6 +23,8 @@ export default function CustomerPortal({ setPage, wishlist }) {
   const { user, logout } = useAuth()
   const [orders, setOrders] = useState([])
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [showCancelModal, setShowCancelModal] = useState(false)
+const [cancelOrderId, setCancelOrderId] = useState(null)
 
   useEffect(() => {
     const userId = user?.id || user?._id
@@ -35,9 +37,7 @@ export default function CustomerPortal({ setPage, wishlist }) {
   }, [user])
 
   const handleCancelOrder = async (orderId) => {
-    const confirmCancel = window.confirm('Are you sure you want to cancel this order?')
-    if (!confirmCancel) return
-    try {
+  try {
       const res = await fetch(
         `https://puji-home-foods-backend.onrender.com/api/orders/${orderId}/cancel`,
         { method: 'PUT' }
@@ -48,11 +48,17 @@ export default function CustomerPortal({ setPage, wishlist }) {
           order._id === orderId ? { ...order, orderStatus: 'Cancelled' } : order
         )
       )
-      alert('Order Cancelled Successfully')
+      setShowCancelModal(false)
     } catch {
-      alert('Failed To Cancel Order')
+      console.log('Failed To Cancel Order')
     }
   }
+  const confirmCancelOrder = async () => {
+  await handleCancelOrder(cancelOrderId)
+
+  setShowCancelModal(false)
+  setCancelOrderId(null)
+}
 
   // Use real user data from auth
   const displayName  = user?.name  || 'Customer'
@@ -231,9 +237,24 @@ color:
                         </span>
                         {(order.orderStatus === 'Pending' ||
   order.orderStatus === 'Preparing') && (
-                          <button onClick={() => handleCancelOrder(order._id)} style={{ padding: '6px 14px', border: 'none', borderRadius: '8px', background: '#c0392b', color: 'white', cursor: 'pointer', fontSize: '.8rem' }}>
-                            Cancel Order
-                          </button>
+                          <button
+  onClick={() => {
+    setCancelOrderId(order._id)
+    setShowCancelModal(true)
+  }}
+  style={{
+    padding: '8px 14px',
+    border: 'none',
+    borderRadius: '10px',
+    background: '#8B1A1A',
+    color: 'white',
+    cursor: 'pointer',
+    fontWeight: 600
+  }}
+>
+  Cancel Order
+</button>
+
                         )}
                       </div>
                     </div>
@@ -281,6 +302,7 @@ color:
       </div>
       {selectedOrder && (
   <div
+  
     onClick={() => setSelectedOrder(null)}
     style={{
       position: 'fixed',
@@ -330,9 +352,7 @@ color:
             marginBottom: '15px'
           }}
         >
-          <div style={{ color: 'red', fontSize: '12px' }}>
-  {JSON.stringify(product.image)}
-</div>
+         
           <img
   src={
     product.image?.startsWith('http')
@@ -374,7 +394,98 @@ color:
       </button>
     </div>
   </div>
+  )}
+  {showCancelModal && (
+  <div
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0,0,0,0.6)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 10000
+    }}
+  >
+    <div
+      style={{
+        background: '#fff',
+        width: '420px',
+        padding: '30px',
+        borderRadius: '18px',
+        textAlign: 'center'
+      }}
+    >
+      <div
+        style={{
+          fontSize: '50px',
+          marginBottom: '10px'
+        }}
+      >
+        ⚠️
+      </div>
+
+      <h2
+        style={{
+          color: '#3D0000'
+        }}
+      >
+        Cancel Order?
+      </h2>
+
+      <p
+        style={{
+          color: '#666',
+          marginTop: '10px',
+          marginBottom: '25px'
+        }}
+      >
+        Are you sure you want to cancel this order?
+      </p>
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '12px'
+        }}
+      >
+        <button
+          onClick={() => setShowCancelModal(false)}
+          style={{
+            padding: '10px 18px',
+            borderRadius: '10px',
+            border: '1px solid #ddd',
+            background: '#fff',
+            cursor: 'pointer'
+          }}
+        >
+          Keep Order
+        </button>
+
+        <button
+          onClick={confirmCancelOrder}
+          style={{
+            padding: '10px 18px',
+            borderRadius: '10px',
+            border: 'none',
+            background: '#8B1A1A',
+            color: '#fff',
+            fontWeight: '600',
+            cursor: 'pointer'
+          }}
+        >
+          Cancel Order
+        </button>
+      </div>
+    </div>
+  </div>
 )}
+  
+
 
       <footer style={{ background: '#3D0000', color: 'white', marginTop: '40px', padding: '35px 20px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', textAlign: 'center', gap: '12px' }}>

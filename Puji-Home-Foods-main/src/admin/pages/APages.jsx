@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { adminCategories, orders, customers, payments, coupons, deliveries, reviews, admins, revenueData, ordersData, topProducts, categoryData } from '../data/adminData'
+import { adminCategories, orders, customers, coupons, deliveries, reviews, admins, revenueData, ordersData, topProducts, categoryData } from '../data/adminData'
 import { getAdminCode, setAdminCode } from '../data/adminCode'
 import { Card, Badge, ABtn, SearchBar, DataTable, Toast, ConfirmModal, AC, Icon } from '../components/AdminShared'
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
@@ -132,12 +132,16 @@ useEffect(() => {
     { key:'description', label:'Description', wrap:true },
     { key:'products',    label:'Products',    render:v => <span style={{ fontWeight:700, color:AC.crimson }}>{v}</span> },
     { key:'status',      label:'Status',      render:v => <Badge status={v} /> },
-    { key:'id',          label:'Actions',     render:(_,r) => (
-      <div style={{ display:'flex', gap:6 }}>
-        <ABtn size="sm" variant="outline" onClick={() => open(r)}>Edit</ABtn>
-        <ABtn size="sm" variant="primary" onClick={() => setConfirm(r._id)}>Delete</ABtn>
-      </div>
-    )},
+    {
+  key:'_id',
+  label:'Actions',
+  render:(_,r) => (
+    <div style={{ display:'flex', gap:6 }}>
+      <ABtn size="sm" variant="outline" onClick={() => open(r)}>Edit</ABtn>
+      <ABtn size="sm" variant="primary" onClick={() => setConfirm(r._id)}>Delete</ABtn>
+    </div>
+  )
+}
   ]
 
   return (
@@ -318,13 +322,20 @@ export function AOrders() {
     key: '_id',
     label: 'Actions',
     render: (_, r) => (
-      <ABtn
-        size="sm"
-        variant="outline"
-        onClick={() => setViewItem(r)}
-      >
-        View
-      </ABtn>
+      <button
+  onClick={() => setViewItem(r)}
+  style={{
+    padding: "8px 20px",
+    borderRadius: "25px",
+    border: "1px solid #d4b15a",
+    background: "#fff",
+    color: "#8B1A1A",
+    fontWeight: "600",
+    cursor: "pointer"
+  }}
+>
+  View
+</button>
     )
   }
 ]
@@ -433,50 +444,153 @@ export function ACustomers() {
 // PAYMENTS
 // ══════════════════════════════════════════════════════════════════
 export function APayments() {
-  const [search, setSearch]     = useState('')
-  const [statusF, setStatusF]   = useState('All')
+  const [data, setData] = useState([])
+  const [search, setSearch] = useState('')
+  const [statusF, setStatusF] = useState('All')
   const [viewItem, setViewItem] = useState(null)
-  const filtered = payments.filter(p =>
-    (statusF==='All' || p.status===statusF) &&
-    (p.customer.toLowerCase().includes(search.toLowerCase()) || p.id.includes(search.toUpperCase()))
+
+  useEffect(() => {
+    const token = localStorage.getItem("puji_token")
+
+    fetch("https://puji-home-foods-backend.onrender.com/api/orders", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("PAYMENTS:", data)
+        setData(Array.isArray(data) ? data : [])
+      })
+      .catch(err => {
+        console.error(err)
+        setData([])
+      })
+  }, [])
+
+  const filtered = data.filter(p =>
+    (statusF === 'All' || p.paymentStatus === statusF) &&
+    (
+      (p.customerName || '')
+        .toLowerCase()
+        .includes(search.toLowerCase())
+    )
   )
+
   const columns = [
-    { key:'id',       label:'Pay ID',   render:v => <span style={{ color:AC.crimson, fontWeight:700, fontSize:'.75rem' }}>{v}</span> },
-    { key:'orderId',  label:'Order ID', render:v => <span style={{ color:'#5b21b6', fontWeight:600 }}>{v}</span> },
-    { key:'customer', label:'Customer', render:v => <span style={{ fontWeight:600 }}>{v}</span> },
-    { key:'amount',   label:'Amount',   render:v => <span style={{ fontWeight:700, color:AC.crimson }}>₹{v}</span> },
-    { key:'method',   label:'Method'   },
-    { key:'status',   label:'Status',   render:v => <Badge status={v} /> },
-    { key:'date',     label:'Date',     render:v => <span style={{ color:'#9a6040' }}>{v}</span> },
-    { key:'id',       label:'Actions',  render:(_,r) => <ABtn size="sm" variant="outline" onClick={() => setViewItem(r)}>View</ABtn> },
+    {
+      key: '_id',
+      label: 'Pay ID',
+      render: v => (
+        <span style={{ color: AC.crimson, fontWeight: 700 }}>
+          {v.slice(-6)}
+        </span>
+      )
+    },
+
+    {
+      key: '_id',
+      label: 'Order ID',
+      render: v => (
+        <span style={{ color: '#5b21b6', fontWeight: 600 }}>
+          {v.slice(-6)}
+        </span>
+      )
+    },
+
+    {
+      key: 'customerName',
+      label: 'Customer'
+    },
+
+    {
+      key: 'totalAmount',
+      label: 'Amount',
+      render: v => (
+        <span style={{ fontWeight: 700, color: AC.crimson }}>
+          ₹{v}
+        </span>
+      )
+    },
+
+    {
+      key: 'paymentMethod',
+      label: 'Method'
+    },
+
+    {
+      key: 'paymentStatus',
+      label: 'Status',
+      render: v => <Badge status={v} />
+    },
+
+    {
+      key: 'createdAt',
+      label: 'Date',
+      render: v => (
+        <span style={{ color: '#9a6040' }}>
+          {new Date(v).toLocaleDateString()}
+        </span>
+      )
+    },
+
+    {
+      key: '_id',
+      label: 'Actions',
+      render: (_, r) => (
+        <ABtn
+          size="sm"
+          variant="outline"
+          onClick={() => setViewItem(r)}
+        >
+          View
+        </ABtn>
+      )
+    }
   ]
+
   return (
     <div style={{ padding:'1.5rem' }}>
       <Card>
-        <div style={{ padding:'1.2rem 1.4rem', borderBottom:'1px solid rgba(201,168,76,.1)', display:'flex', flexWrap:'wrap', gap:'1rem', alignItems:'center' }}>
-          <SearchBar value={search} onChange={setSearch} placeholder="Search payments..." />
-          <select value={statusF} onChange={e => setStatusF(e.target.value)} style={{ padding:'8px 14px', borderRadius:20, border:'1.5px solid rgba(201,168,76,.25)', fontSize:'.8rem', fontFamily:"'DM Sans',sans-serif", outline:'none', background:'white', color:'#5a2e10', cursor:'pointer' }}>
-            {['All','Paid','Failed','Refunded','Pending'].map(s => <option key={s}>{s}</option>)}
+        <div
+          style={{
+            padding:'1.2rem 1.4rem',
+            borderBottom:'1px solid rgba(201,168,76,.1)',
+            display:'flex',
+            flexWrap:'wrap',
+            gap:'1rem',
+            alignItems:'center'
+          }}
+        >
+          <SearchBar
+            value={search}
+            onChange={setSearch}
+            placeholder="Search payments..."
+          />
+
+          <select
+  value={statusF}
+  onChange={e => setStatusF(e.target.value)}
+  style={{
+    padding: "10px 18px",
+    borderRadius: "30px",
+    border: "1px solid #d4b15a",
+    background: "#fff",
+    color: "#5a2e10",
+    fontWeight: "600",
+    cursor: "pointer"
+  }}
+>
+            <option>All</option>
+            <option>Pending</option>
+            <option>Paid</option>
+            <option>Failed</option>
+            <option>Refunded</option>
           </select>
         </div>
+
         <DataTable columns={columns} data={filtered} />
       </Card>
-      {viewItem && (
-        <div style={{ position:'fixed', inset:0, zIndex:9000, background:'rgba(0,0,0,.5)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
-          <div style={{ background:'white', borderRadius:20, padding:'2rem', maxWidth:420, width:'100%', boxShadow:'0 30px 80px rgba(0,0,0,.3)', border:'1px solid rgba(201,168,76,.2)' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.5rem' }}>
-              <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:'1.1rem', fontWeight:800, color:'#1a0400', margin:0 }}>Transaction Details</h2>
-              <button onClick={() => setViewItem(null)} style={{ background:'none', border:'1px solid rgba(201,168,76,.2)', borderRadius:'50%', width:32, height:32, cursor:'pointer', fontSize:14, color:'#7a4020' }}>✕</button>
-            </div>
-            {Object.entries(viewItem).map(([k,v]) => (
-              <div key={k} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:'1px solid rgba(201,168,76,.08)' }}>
-                <span style={{ fontSize:'.82rem', color:'#9a6040', textTransform:'capitalize' }}>{k}</span>
-                <span style={{ fontSize:'.82rem', fontWeight:600, color:'#1a0400' }}>{String(v)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -484,36 +598,108 @@ export function APayments() {
 // ══════════════════════════════════════════════════════════════════
 // COUPONS
 // ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════
+// COUPONS
+// ══════════════════════════════════════════════════════════════════
 export function ACoupons() {
-  const [data, setData]       = useState(coupons)
+  const [data, setData]       = useState([])
+  const [loading, setLoading] = useState(false)
   const [modal, setModal]     = useState(false)
   const [form, setForm]       = useState({ code:'', discount:'', type:'Percentage', minOrder:'', usageLimit:'', validTill:'', status:'Active' })
   const [editId, setEditId]   = useState(null)
   const [confirm, setConfirm] = useState(null)
   const [toast, setToast]     = useState(null)
 
+  const BASE = 'https://puji-home-foods-backend.onrender.com/api/coupons'
+
+  useEffect(() => {
+    fetch(BASE)
+      .then(res => res.json())
+      .then(data => setData(Array.isArray(data) ? data : []))
+      .catch(() => setToast({ msg: 'Failed to load coupons', type: 'error' }))
+  }, [])
+
   const open = (row) => {
-    if (row) { setForm({code:row.code,discount:String(row.discount),type:row.type,minOrder:String(row.minOrder),usageLimit:String(row.usageLimit),validTill:row.validTill,status:row.status}); setEditId(row._id) }
-    else     { setForm({code:'',discount:'',type:'Percentage',minOrder:'',usageLimit:'',validTill:'',status:'Active'}); setEditId(null) }
+    if (row) {
+      setForm({
+        code:       row.code,
+        discount:   String(row.discount),
+        type:       row.type,
+        minOrder:   String(row.minOrder),
+        usageLimit: String(row.usageLimit),
+        validTill:  row.validTill ? row.validTill.slice(0, 10) : '',
+        status:     row.status,
+      })
+      setEditId(row._id)
+    } else {
+      setForm({ code:'', discount:'', type:'Percentage', minOrder:'', usageLimit:'', validTill:'', status:'Active' })
+      setEditId(null)
+    }
     setModal(true)
   }
-  const save = () => {
-    if (!form.code.trim()) return
-    const row = {...form, discount:+form.discount, minOrder:+form.minOrder, usageLimit:+form.usageLimit, used: editId ? data.find(d=>d.id===editId)?.used : 0}
-    if (editId) setData(d => d.map(r => r.id===editId ? {...row, id:editId} : r))
-    else        setData(d => [...d, {...row, id:`CUP${Date.now()}`}])
-    setModal(false); setToast({ msg: editId?'Coupon updated!':'Coupon added!', type:'success' })
+
+  const save = async () => {
+    if (!form.code.trim() || !form.discount || !form.validTill) return
+    setLoading(true)
+    const payload = {
+      code:       form.code.toUpperCase(),
+      discount:   Number(form.discount),
+      type:       form.type,
+      minOrder:   Number(form.minOrder) || 0,
+      usageLimit: Number(form.usageLimit) || 100,
+      validTill:  form.validTill,
+      status:     form.status,
+    }
+    try {
+      if (editId) {
+        const res = await fetch(`${BASE}/${editId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        const updated = await res.json()
+        setData(d => d.map(r => r._id === editId ? updated : r))
+        setToast({ msg: 'Coupon updated!', type: 'success' })
+      } else {
+        const res = await fetch(BASE, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        const created = await res.json()
+        if (!res.ok) throw new Error(created.message || 'Failed to create')
+        setData(d => [created, ...d])
+        setToast({ msg: 'Coupon added!', type: 'success' })
+      }
+      setModal(false)
+    } catch (err) {
+      setToast({ msg: err.message || 'Failed to save coupon', type: 'error' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const deleteCoupon = async (id) => {
+    try {
+      await fetch(`${BASE}/${id}`, { method: 'DELETE' })
+      setData(d => d.filter(r => r._id !== id))
+      setToast({ msg: 'Coupon deleted', type: 'error' })
+    } catch {
+      setToast({ msg: 'Failed to delete coupon', type: 'error' })
+    } finally {
+      setConfirm(null)
+    }
   }
 
   const columns = [
     { key:'code',      label:'Code',      render:v => <span style={{ fontFamily:'monospace', fontWeight:800, color:AC.crimson, background:'#fee2e2', padding:'3px 10px', borderRadius:20, fontSize:'.8rem' }}>{v}</span> },
     { key:'discount',  label:'Discount',  render:(v,r) => <span style={{ fontWeight:700 }}>{r.type==='Flat'?`₹${v}`:`${v}%`}</span> },
-    { key:'type',      label:'Type'      },
+    { key:'type',      label:'Type' },
     { key:'minOrder',  label:'Min Order', render:v => `₹${v}` },
     { key:'used',      label:'Used',      render:(v,r) => <span style={{ color: v>=r.usageLimit?'#991b1b':'#166534', fontWeight:700 }}>{v}/{r.usageLimit}</span> },
-    { key:'validTill', label:'Valid Till', render:v => <span style={{ color:'#9a6040' }}>{v}</span> },
+    { key:'validTill', label:'Valid Till', render:v => <span style={{ color:'#9a6040' }}>{new Date(v).toLocaleDateString()}</span> },
     { key:'status',    label:'Status',    render:v => <Badge status={v} /> },
-    { key:'id',        label:'Actions',   render:(_,r) => (
+    { key:'_id',       label:'Actions',   render:(_,r) => (
       <div style={{ display:'flex', gap:6 }}>
         <ABtn size="sm" variant="outline" onClick={() => open(r)}>Edit</ABtn>
         <ABtn size="sm" variant="primary" onClick={() => setConfirm(r._id)}>Delete</ABtn>
@@ -524,7 +710,13 @@ export function ACoupons() {
   return (
     <div style={{ padding:'1.5rem' }}>
       {toast   && <Toast {...toast} onClose={() => setToast(null)} />}
-      {confirm && <ConfirmModal msg="Delete this coupon?" onConfirm={() => { setData(d=>d.filter(r=>r.id!==confirm)); setConfirm(null); setToast({msg:'Deleted',type:'error'}) }} onCancel={() => setConfirm(null)} />}
+      {confirm && (
+        <ConfirmModal
+          msg="Delete this coupon?"
+          onConfirm={() => deleteCoupon(confirm)}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
       <Card>
         <div style={{ padding:'1.2rem 1.4rem', borderBottom:'1px solid rgba(201,168,76,.1)', display:'flex', justifyContent:'flex-end' }}>
           <ABtn variant="gold" onClick={() => open(null)}>+ Add Coupon</ABtn>
@@ -532,15 +724,15 @@ export function ACoupons() {
         <DataTable columns={columns} data={data} />
       </Card>
       {modal && (
-        <Modal title={editId?'Edit Coupon':'Add Coupon'} onClose={() => setModal(false)} onSave={save}>
+        <Modal title={editId?'Edit Coupon':'Add Coupon'} onClose={() => setModal(false)} onSave={save} loading={loading}>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem' }}>
-            <FInput label="Coupon Code" value={form.code} onChange={v=>setForm(f=>({...f,code:v.toUpperCase()}))} half />
-            <FInput label="Type" value={form.type} onChange={v=>setForm(f=>({...f,type:v}))} options={['Percentage','Flat']} half />
-            <FInput label="Discount" value={form.discount} onChange={v=>setForm(f=>({...f,discount:v}))} type="number" half />
-            <FInput label="Min Order (₹)" value={form.minOrder} onChange={v=>setForm(f=>({...f,minOrder:v}))} type="number" half />
-            <FInput label="Usage Limit" value={form.usageLimit} onChange={v=>setForm(f=>({...f,usageLimit:v}))} type="number" half />
-            <FInput label="Valid Till" value={form.validTill} onChange={v=>setForm(f=>({...f,validTill:v}))} type="date" half />
-            <FInput label="Status" value={form.status} onChange={v=>setForm(f=>({...f,status:v}))} options={['Active','Inactive']} half />
+            <FInput label="Coupon Code"   value={form.code}       onChange={v => setForm(f=>({...f, code:v.toUpperCase()}))} half />
+            <FInput label="Type"          value={form.type}       onChange={v => setForm(f=>({...f, type:v}))}       options={['Percentage','Flat']} half />
+            <FInput label="Discount"      value={form.discount}   onChange={v => setForm(f=>({...f, discount:v}))}   type="number" half />
+            <FInput label="Min Order (₹)" value={form.minOrder}   onChange={v => setForm(f=>({...f, minOrder:v}))}   type="number" half />
+            <FInput label="Usage Limit"   value={form.usageLimit} onChange={v => setForm(f=>({...f, usageLimit:v}))} type="number" half />
+            <FInput label="Valid Till"    value={form.validTill}  onChange={v => setForm(f=>({...f, validTill:v}))}  type="date"   half />
+            <FInput label="Status"        value={form.status}     onChange={v => setForm(f=>({...f, status:v}))}     options={['Active','Inactive']} half />
           </div>
         </Modal>
       )}
@@ -576,80 +768,161 @@ export function AAnalytics() {
 // DELIVERY
 // ══════════════════════════════════════════════════════════════════
 export function ADelivery() {
-  const [data, setData]         = useState(deliveries)
+  const [data, setData]         = useState([])
   const [statusF, setStatusF]   = useState('All')
   const [viewItem, setViewItem] = useState(null)
   const [toast, setToast]       = useState(null)
-  const filtered = statusF==='All' ? data : data.filter(d=>d.status===statusF)
- const updateStatus = async (id, status) => {
-  try {
-    await fetch(
-  `https://puji-home-foods-backend.onrender.com/api/orders/${id}/status`,
-      {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          orderStatus: status,
-        }),
-      }
-    )
 
-    setData(d =>
-      d.map(o =>
-        o._id === id
-          ? { ...o, orderStatus: status }
-          : o
-      )
-    )
-
-    setToast({
-      msg: `Order status updated to ${status}`,
-      type: 'success',
+  useEffect(() => {
+    const token = localStorage.getItem('puji_token')
+    fetch('https://puji-home-foods-backend.onrender.com/api/orders', {
+      headers: { Authorization: `Bearer ${token}` },
     })
-  } catch (err) {
-    console.error(err)
+      .then(res => res.json())
+      .then(orders => setData(Array.isArray(orders) ? orders : []))
+      .catch(() => setToast({ msg: 'Failed to load deliveries', type: 'error' }))
+  }, [])
+
+  const deliveryStatuses = ['Pending', 'On the Way', 'Delivered']
+
+  // Map orderStatus → delivery status
+  const toDeliveryStatus = (orderStatus) => {
+    if (orderStatus === 'Shipped')   return 'On the Way'
+    if (orderStatus === 'Delivered') return 'Delivered'
+    return 'Pending'
   }
-}
+
+  // Map delivery status → orderStatus for API
+  const toOrderStatus = (deliveryStatus) => {
+    if (deliveryStatus === 'On the Way') return 'Shipped'
+    if (deliveryStatus === 'Delivered')  return 'Delivered'
+    return 'Pending'
+  }
+
+  const filtered = data.filter(o => {
+    const ds = toDeliveryStatus(o.orderStatus)
+    return statusF === 'All' || ds === statusF
+  })
+
+  const updateStatus = async (id, deliveryStatus) => {
+    const orderStatus = toOrderStatus(deliveryStatus)
+    try {
+      await fetch(`https://puji-home-foods-backend.onrender.com/api/orders/${id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderStatus }),
+      })
+      setData(d => d.map(o => o._id === id ? { ...o, orderStatus } : o))
+      setToast({ msg: `Delivery marked as ${deliveryStatus}`, type: 'success' })
+    } catch {
+      setToast({ msg: 'Failed to update status', type: 'error' })
+    }
+  }
+
   const columns = [
-    { key:'id',       label:'Del ID',   render:v => <span style={{ color:AC.crimson, fontWeight:700 }}>{v}</span> },
-    { key:'orderId',  label:'Order ID', render:v => <span style={{ color:'#5b21b6', fontWeight:600 }}>{v}</span> },
-    { key:'customer', label:'Customer', render:v => <span style={{ fontWeight:600 }}>{v}</span> },
-    { key:'address',  label:'Address',  wrap:true },
-    { key:'status',   label:'Status',   render:(v,r) => (
-      <select value={v} onChange={e=>updateStatus(r.id,e.target.value)} style={{ padding:'4px 8px', borderRadius:20, border:'1.5px solid rgba(201,168,76,.25)', fontSize:'.72rem', fontWeight:700, fontFamily:"'DM Sans',sans-serif", outline:'none', background:'white', cursor:'pointer', color:'#1a0400' }}>
-        {['Pending','On the Way','Delivered'].map(s=><option key={s}>{s}</option>)}
-      </select>
-    )},
-    { key:'expected', label:'Expected', render:v => <span style={{ color:'#9a6040' }}>{v}</span> },
-    { key:'agent',    label:'Agent',    render:v => <span style={{ fontWeight:v==='Unassigned'?400:600, color:v==='Unassigned'?'#9a6040':'#1a0400' }}>{v}</span> },
-    { key:'id',       label:'Actions',  render:(_,r) => <ABtn size="sm" variant="outline" onClick={()=>setViewItem(r)}>View</ABtn> },
+    {
+      key: '_id',
+      label: 'Del ID',
+      render: v => <span style={{ color: AC.crimson, fontWeight: 700, fontFamily: 'monospace' }}>#{v.slice(-6).toUpperCase()}</span>
+    },
+    {
+      key: '_id',
+      label: 'Order ID',
+      render: v => <span style={{ color: '#5b21b6', fontWeight: 600, fontFamily: 'monospace' }}>#{v.slice(-6).toUpperCase()}</span>
+    },
+    {
+      key: 'customerName',
+      label: 'Customer',
+      render: v => <span style={{ fontWeight: 600 }}>{v}</span>
+    },
+    {
+      key: 'address',
+      label: 'Address',
+      wrap: true
+    },
+    {
+      key: 'orderStatus',
+      label: 'Status',
+      render: (v, r) => (
+        <select
+          value={toDeliveryStatus(v)}
+          onChange={e => updateStatus(r._id, e.target.value)}
+          style={{ padding: '4px 8px', borderRadius: 20, border: '1.5px solid rgba(201,168,76,.25)', fontSize: '.72rem', fontWeight: 700, fontFamily: "'DM Sans',sans-serif", outline: 'none', background: 'white', cursor: 'pointer', color: '#1a0400' }}
+        >
+          {deliveryStatuses.map(s => <option key={s}>{s}</option>)}
+        </select>
+      )
+    },
+    {
+      key: 'createdAt',
+      label: 'Order Date',
+      render: v => <span style={{ color: '#9a6040' }}>{new Date(v).toLocaleDateString()}</span>
+    },
+    {
+      key: 'paymentMethod',
+      label: 'Payment'
+    },
+    {
+      key: '_id',
+      label: 'Actions',
+      render: (_, r) => <ABtn size="sm" variant="outline" onClick={() => setViewItem(r)}>View</ABtn>
+    },
   ]
+
   return (
-    <div style={{ padding:'1.5rem' }}>
-      {toast && <Toast {...toast} onClose={()=>setToast(null)} />}
+    <div style={{ padding: '1.5rem' }}>
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
       <Card>
-        <div style={{ padding:'1.2rem 1.4rem', borderBottom:'1px solid rgba(201,168,76,.1)', display:'flex', gap:'1rem' }}>
-          <select value={statusF} onChange={e=>setStatusF(e.target.value)} style={{ padding:'8px 14px', borderRadius:20, border:'1.5px solid rgba(201,168,76,.25)', fontSize:'.8rem', fontFamily:"'DM Sans',sans-serif", outline:'none', background:'white', color:'#5a2e10', cursor:'pointer' }}>
-            {['All','Pending','On the Way','Delivered'].map(s=><option key={s}>{s}</option>)}
+        <div style={{ padding: '1.2rem 1.4rem', borderBottom: '1px solid rgba(201,168,76,.1)', display: 'flex', gap: '1rem' }}>
+          <select
+            value={statusF}
+            onChange={e => setStatusF(e.target.value)}
+            style={{ padding: '8px 14px', borderRadius: 20, border: '1.5px solid rgba(201,168,76,.25)', fontSize: '.8rem', fontFamily: "'DM Sans',sans-serif", outline: 'none', background: 'white', color: '#5a2e10', cursor: 'pointer' }}
+          >
+            {['All', 'Pending', 'On the Way', 'Delivered'].map(s => <option key={s}>{s}</option>)}
           </select>
         </div>
         <DataTable columns={columns} data={filtered} />
       </Card>
+
       {viewItem && (
-        <div style={{ position:'fixed', inset:0, zIndex:9000, background:'rgba(0,0,0,.5)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center', padding:'1rem' }}>
-          <div style={{ background:'white', borderRadius:20, padding:'2rem', maxWidth:440, width:'100%', boxShadow:'0 30px 80px rgba(0,0,0,.3)', border:'1px solid rgba(201,168,76,.2)' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.5rem' }}>
-              <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:'1.1rem', fontWeight:800, color:'#1a0400', margin:0 }}>Delivery Details</h2>
-              <button onClick={()=>setViewItem(null)} style={{ background:'none', border:'1px solid rgba(201,168,76,.2)', borderRadius:'50%', width:32, height:32, cursor:'pointer', fontSize:14, color:'#7a4020' }}>✕</button>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9000, background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: 'white', borderRadius: 20, padding: '2rem', maxWidth: 480, width: '100%', boxShadow: '0 30px 80px rgba(0,0,0,.3)', border: '1px solid rgba(201,168,76,.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: '1.1rem', fontWeight: 800, color: '#1a0400', margin: 0 }}>
+                Delivery Details
+              </h2>
+              <button onClick={() => setViewItem(null)} style={{ background: 'none', border: '1px solid rgba(201,168,76,.2)', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontSize: 14, color: '#7a4020' }}>✕</button>
             </div>
-            {Object.entries(viewItem).map(([k,v]) => (
-              <div key={k} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:'1px solid rgba(201,168,76,.08)' }}>
-                <span style={{ fontSize:'.82rem', color:'#9a6040', textTransform:'capitalize' }}>{k}</span>
-                <span style={{ fontSize:'.82rem', fontWeight:600, color:'#1a0400' }}>{String(v)}</span>
+            {[
+              ['Order ID',    `#${viewItem._id.slice(-6).toUpperCase()}`],
+              ['Customer',    viewItem.customerName],
+              ['Phone',       viewItem.phone || 'N/A'],
+              ['Address',     viewItem.address],
+              ['Amount',      `₹${viewItem.totalAmount}`],
+              ['Payment',     viewItem.paymentMethod],
+              ['Order Status',viewItem.orderStatus],
+              ['Delivery',    toDeliveryStatus(viewItem.orderStatus)],
+              ['Date',        new Date(viewItem.createdAt).toLocaleDateString()],
+            ].map(([l, v]) => (
+              <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(201,168,76,.08)' }}>
+                <span style={{ fontSize: '.82rem', color: '#9a6040' }}>{l}</span>
+                <span style={{ fontSize: '.82rem', fontWeight: 600, color: '#1a0400', textAlign: 'right', maxWidth: '60%' }}>{v}</span>
               </div>
             ))}
+
+            {/* Products */}
+            {viewItem.products?.length > 0 && (
+              <div style={{ marginTop: '1rem' }}>
+                <div style={{ fontSize: '.78rem', fontWeight: 700, color: '#7a4020', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>Items</div>
+                {viewItem.products.map((p, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(201,168,76,.06)', fontSize: '.8rem' }}>
+                    <span style={{ color: '#1a0400' }}>{p.name} × {p.quantity}</span>
+                    <span style={{ color: AC.crimson, fontWeight: 700 }}>₹{p.price}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -956,7 +1229,13 @@ const copyCode = () => {
   }
   const save = () => {
     if (!form.name.trim() || !form.email.trim()) return
-    if (editId) setData(d => d.map(r => r.id===editId ? {...r,...form} : r))
+    if (editId) setData(d =>
+  d.map(r =>
+    r._id === editId
+      ? { ...r, ...form }
+      : r
+  )
+)
     else        setData(d => [...d, {...form, id:`A${Date.now()}`, lastLogin:'Never'}])
     setModal(false); setToast({ msg: editId?'Admin updated!':'Admin added!', type:'success' })
   }
@@ -970,7 +1249,7 @@ const copyCode = () => {
     { key:'id',        label:'Actions',    render:(_,r) => (
       <div style={{ display:'flex', gap:6 }}>
         <ABtn size="sm" variant="outline" onClick={()=>open(r)}>Edit</ABtn>
-        <ABtn size="sm" variant="primary" onClick={()=>setConfirm(r.id)}>Delete</ABtn>
+        <ABtn size="sm" variant="primary" onClick={()=>setConfirm(r._id)}>Delete</ABtn>
       </div>
     )},
   ]
@@ -978,7 +1257,7 @@ const copyCode = () => {
   return (
     <div style={{ padding:'1.5rem' }}>
       {toast   && <Toast {...toast} onClose={()=>setToast(null)} />}
-      {confirm && <ConfirmModal msg="Remove this admin?" onConfirm={()=>{ setData(d=>d.filter(r=>r.id!==confirm)); setConfirm(null); setToast({msg:'Admin removed',type:'error'}) }} onCancel={()=>setConfirm(null)} />}
+      {confirm && <ConfirmModal msg="Remove this admin?" onConfirm={()=>{ setData(d=>d.filter(r=>r._id!==confirm)); setConfirm(null); setToast({msg:'Admin removed',type:'error'}) }} onCancel={()=>setConfirm(null)} />}
       <Card>
         <div style={{ padding:'1.2rem 1.4rem', borderBottom:'1px solid rgba(201,168,76,.1)', display:'flex', justifyContent:'flex-end', gap:'1rem' }}>
   <ABtn variant="outline" onClick={generateInvite} disabled={inviteLoading}>

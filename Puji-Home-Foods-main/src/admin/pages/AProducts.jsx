@@ -71,11 +71,15 @@ export default function AProducts() {
 
   // ── Open Add ────────────────────────────────────────────────────
   const openAdd = () => {
-    setForm(emptyForm)
-    setEditId(null)
-    setErrors({})
-    setModal(true)
-  }
+  setForm({
+    ...emptyForm,
+    category: cats[1] || ''
+  })
+
+  setEditId(null)
+  setErrors({})
+  setModal(true)
+}
 
   // ── Open Edit ───────────────────────────────────────────────────
   const openEdit = (p) => {
@@ -137,9 +141,14 @@ export default function AProducts() {
         setToast({ msg: 'Product added!', type: 'success' })
       }
       setModal(false)
-    } catch {
-      setToast({ msg: 'Failed to save product', type: 'error' })
-    }
+    } catch (err) {
+  console.log(err)
+
+  setToast({
+    msg: err.message || 'Failed to save product',
+    type: 'error'
+  })
+}
     setSaving(false)
   }
 
@@ -177,14 +186,25 @@ export default function AProducts() {
       key: 'price', label: 'Price (1kg)',
       render: (v) => <span style={{ fontWeight: 700, color: AC.crimson }}>₹{v || '—'}</span>
     },
-    {
-      key: 'stock', label: 'Stock',
-      render: (v) => (
-        <span style={{ color: v <= 10 ? '#991b1b' : '#166534', fontWeight: 700, background: v <= 10 ? '#fee2e2' : '#dcfce7', padding: '2px 8px', borderRadius: 20, fontSize: '.72rem' }}>
-          {v}
-        </span>
-      )
-    },
+    
+      {
+  key: 'totalStock',
+  label: 'Stock',
+  render: (_, row) => (
+    <span
+      style={{
+        color: row.totalStock <= 10 ? '#991b1b' : '#166534',
+        fontWeight: 700,
+        background: row.totalStock <= 10 ? '#fee2e2' : '#dcfce7',
+        padding: '2px 8px',
+        borderRadius: 20,
+        fontSize: '.72rem'
+      }}
+    >
+      {row.totalStock}
+    </span>
+  )
+},
     {
       key: 'stockStatus', label: 'Status',
       render: (v) => <Badge status={v || 'In Stock'} />
