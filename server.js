@@ -17,6 +17,7 @@ const wishlistRoutes = require("./routes/wishlistRoutes");
 const inviteCodeRoutes = require("./routes/inviteCodeRoutes");
 const couponRoutes = require("./routes/couponRoutes");
 const storeSettingsRoutes = require("./routes/storeSettingsRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/invite", inviteCodeRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/store-settings", storeSettingsRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 // Test Route
 app.get("/", (req, res) => {

@@ -6,7 +6,6 @@ const loginAdmin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check admin
     const admin = await Admin.findOne({ email });
 
     if (!admin) {
@@ -15,7 +14,6 @@ const loginAdmin = async (req, res) => {
       });
     }
 
-    // Check password
     const isMatch = await bcrypt.compare(password, admin.password);
 
     if (!isMatch) {
@@ -24,7 +22,6 @@ const loginAdmin = async (req, res) => {
       });
     }
 
-    // Create token
     const token = jwt.sign(
       {
         id: admin._id,
@@ -71,10 +68,20 @@ const getAllAdmins = async (req, res) => {
 
 const deleteAdmin = async (req, res) => {
   try {
-    await Admin.findByIdAndDelete(req.params.id);
+    console.log("DELETE ID:", req.params.id);
+
+    const deleted = await Admin.findByIdAndDelete(req.params.id);
+
+    console.log("DELETED:", deleted);
+
+    if (!deleted) {
+      return res.status(404).json({
+        message: "Admin not found",
+      });
+    }
 
     res.status(200).json({
-      message: "Admin deleted",
+      message: "Admin deleted successfully",
     });
   } catch (error) {
     console.log(error);
