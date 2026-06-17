@@ -74,7 +74,7 @@ useEffect(() => {
   try {
     if (editId) {
       const res = await fetch(
-        `https://puji-home-foods-backend.onrender.com/api/categories/${editId}`,
+        `http://localhost:5000/api/categories/${editId}`,
         {
           method: "PUT",
           headers: {
@@ -96,7 +96,7 @@ useEffect(() => {
       })
     } else {
       const res = await fetch(
-        "https://puji-home-foods-backend.onrender.com/api/categories",
+        "http://localhost:5000/api/categories",
         {
           method: "POST",
           headers: {
@@ -153,7 +153,7 @@ useEffect(() => {
     onConfirm={async () => {
       try {
         await fetch(
-          `https://puji-home-foods-backend.onrender.com/api/categories/${confirm}`,
+          `http://localhost:5000/api/categories/${confirm}`,
           {
             method: "DELETE",
           }
@@ -210,7 +210,7 @@ export function AOrders() {
   useEffect(() => {
   const token = localStorage.getItem("puji_token")
 
-  fetch("https://puji-home-foods-backend.onrender.com/api/orders", {
+  fetch("http://localhost:5000/api/orders", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -245,7 +245,7 @@ export function AOrders() {
   const updateStatus = async (id, status) => {
     try {
       await fetch(
-        `https://puji-home-foods-backend.onrender.com/api/orders/${id}/status`,
+        `http://localhost:5000/api/orders/${id}/status`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -383,7 +383,7 @@ export function ACustomers() {
  useEffect(() => {
   const token = localStorage.getItem("puji_token")
 
-  fetch("https://puji-home-foods-backend.onrender.com/api/users", {
+  fetch("http://localhost:5000/api/users", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -452,7 +452,7 @@ export function APayments() {
   useEffect(() => {
     const token = localStorage.getItem("puji_token")
 
-    fetch("https://puji-home-foods-backend.onrender.com/api/orders", {
+    fetch("http://localhost:5000/api/orders", {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -610,7 +610,7 @@ export function ACoupons() {
   const [confirm, setConfirm] = useState(null)
   const [toast, setToast]     = useState(null)
 
-  const BASE = 'https://puji-home-foods-backend.onrender.com/api/coupons'
+  const BASE = 'http://localhost:5000/api/coupons'
 
   useEffect(() => {
     fetch(BASE)
@@ -775,7 +775,7 @@ export function ADelivery() {
 
   useEffect(() => {
     const token = localStorage.getItem('puji_token')
-    fetch('https://puji-home-foods-backend.onrender.com/api/orders', {
+    fetch('http://localhost:5000/api/orders', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => res.json())
@@ -807,7 +807,7 @@ export function ADelivery() {
   const updateStatus = async (id, deliveryStatus) => {
     const orderStatus = toOrderStatus(deliveryStatus)
     try {
-      await fetch(`https://puji-home-foods-backend.onrender.com/api/orders/${id}/status`, {
+      await fetch(`http://localhost:5000/api/orders/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderStatus }),
@@ -934,32 +934,175 @@ export function ADelivery() {
 // REVIEWS
 // ══════════════════════════════════════════════════════════════════
 export function AReviews() {
-  const [data, setData]       = useState(reviews)
+  const [data, setData] = useState([])
   const [statusF, setStatusF] = useState('All')
-  const [toast, setToast]     = useState(null)
-  const filtered = statusF==='All'
-  ? data
-  : data.filter(d => d.status===statusF)
-  const toggle = (id) => { setData(d => d.map(r => r.id===id ? {...r, status: r.status==='Approved'?'Pending':'Approved'} : r)); setToast({ msg:'Review status updated', type:'success' }) }
+  const [toast, setToast] = useState(null)
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/reviews')
+      .then(res => res.json())
+      .then(data => {
+        setData(Array.isArray(data) ? data : [])
+      })
+      .catch(err => {
+        console.error(err)
+        setToast({
+          msg: 'Failed to load reviews',
+          type: 'error'
+        })
+      })
+  }, [])
+
+  const filtered =
+    statusF === 'All'
+      ? data
+      : data.filter(r => r.status === statusF)
+
+  const toggle = async (review) => {
+    try {
+      const endpoint =
+        review.status === 'Approved'
+          ? 'unapprove'
+          : 'approve'
+
+      const res = await fetch(
+        `http://localhost:5000/api/reviews/${endpoint}/${review._id}`,
+        {
+          method: 'PUT',
+        }
+      )
+
+      const updated = await res.json()
+
+      setData(d =>
+        d.map(r =>
+          r._id === updated._id ? updated : r
+        )
+      )
+
+      setToast({
+        msg: 'Review status updated',
+        type: 'success'
+      })
+    } catch (err) {
+      console.error(err)
+
+      setToast({
+        msg: 'Failed to update review',
+        type: 'error'
+      })
+    }
+  }
+
   const columns = [
-    { key:'product',  label:'Product',  render:v => <span style={{ fontWeight:700, color:'#1a0400' }}>{v}</span> },
-    { key:'customer', label:'Customer', render:v => <span style={{ fontWeight:600 }}>{v}</span> },
-    { key:'rating',   label:'Rating',   render:v => <span style={{ color:AC.gold }}>{'★'.repeat(v)}{'☆'.repeat(5-v)}</span> },
-    { key:'review',   label:'Review',   wrap:true },
-    { key:'date',     label:'Date',     render:v => <span style={{ color:'#9a6040' }}>{v}</span> },
-    { key:'status',   label:'Status',   render:v => <Badge status={v} /> },
-    { key:'id',       label:'Actions',  render:(_,r) => <ABtn size="sm" variant={r.status==='Approved'?'primary':'outline'} onClick={()=>toggle(r.id)}>{r.status==='Approved'?'Unapprove':'Approve'}</ABtn> },
+    {
+      key: 'productName',
+      label: 'Product',
+      render: v => (
+        <span style={{ fontWeight: 700 }}>
+          {v}
+        </span>
+      )
+    },
+
+    {
+      key: 'customerName',
+      label: 'Customer'
+    },
+
+    {
+      key: 'rating',
+      label: 'Rating',
+      render: v => (
+        <span style={{ color: AC.gold }}>
+          {'★'.repeat(v)}
+          {'☆'.repeat(5 - v)}
+        </span>
+      )
+    },
+
+    {
+      key: 'review',
+      label: 'Review',
+      wrap: true
+    },
+
+    {
+      key: 'createdAt',
+      label: 'Date',
+      render: v => (
+        <span>
+          {new Date(v).toLocaleDateString()}
+        </span>
+      )
+    },
+
+    {
+      key: 'status',
+      label: 'Status',
+      render: v => <Badge status={v} />
+    },
+
+    {
+      key: '_id',
+      label: 'Actions',
+      render: (_, r) => (
+        <ABtn
+          size="sm"
+          variant={
+            r.status === 'Approved'
+              ? 'primary'
+              : 'outline'
+          }
+          onClick={() => toggle(r)}
+        >
+          {r.status === 'Approved'
+            ? 'Unapprove'
+            : 'Approve'}
+        </ABtn>
+      )
+    }
   ]
+
   return (
-    <div style={{ padding:'1.5rem' }}>
-      {toast && <Toast {...toast} onClose={()=>setToast(null)} />}
+    <div style={{ padding: '1.5rem' }}>
+      {toast && (
+        <Toast
+          {...toast}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       <Card>
-        <div style={{ padding:'1.2rem 1.4rem', borderBottom:'1px solid rgba(201,168,76,.1)', display:'flex', gap:'1rem' }}>
-          <select value={statusF} onChange={e=>setStatusF(e.target.value)} style={{ padding:'8px 14px', borderRadius:20, border:'1.5px solid rgba(201,168,76,.25)', fontSize:'.8rem', fontFamily:"'DM Sans',sans-serif", outline:'none', background:'white', color:'#5a2e10', cursor:'pointer' }}>
-            {['All','Approved','Pending'].map(s=><option key={s}>{s}</option>)}
+        <div
+          style={{
+            padding: '1.2rem 1.4rem',
+            borderBottom:
+              '1px solid rgba(201,168,76,.1)',
+            display: 'flex',
+            gap: '1rem'
+          }}
+        >
+          <select
+            value={statusF}
+            onChange={e =>
+              setStatusF(e.target.value)
+            }
+            style={{
+              padding: '8px 14px',
+              borderRadius: 20
+            }}
+          >
+            <option>All</option>
+            <option>Approved</option>
+            <option>Pending</option>
           </select>
         </div>
-        <DataTable columns={columns} data={filtered} />
+
+        <DataTable
+          columns={columns}
+          data={filtered}
+        />
       </Card>
     </div>
   )
@@ -978,6 +1121,20 @@ export function ASettings() {
     emailNotif:true, smsNotif:false,
     currentPwd:'', newPwd:'', confirmPwd:'',
   })
+  useEffect(() => {
+  fetch("http://localhost:5000/api/store-settings")
+    .then(res => res.json())
+    .then(data => {
+      setForm(f => ({
+        ...f,
+        storeName: data.storeName || "",
+        email: data.email || "",
+        phone: data.phone || "",
+        address: data.address || "",
+      }))
+    })
+    .catch(err => console.error(err))
+}, [])
 
   // Admin Code tab
   const [codeInput, setCodeInput]     = useState('')
@@ -994,7 +1151,39 @@ export function ASettings() {
     { key:'admincode', label:'Admin Code', icon:'admins'    },
   ]
 
-  const save = () => setToast({ msg:'Settings saved successfully!', type:'success' })
+  const save = async () => {
+  try {
+    const res = await fetch(
+      "http://localhost:5000/api/store-settings",
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          storeName: form.storeName,
+          email: form.email,
+          phone: form.phone,
+          address: form.address,
+        }),
+      }
+    )
+
+    if (!res.ok) throw new Error("Save failed")
+
+    setToast({
+      msg: "Settings saved successfully!",
+      type: "success",
+    })
+  } catch (err) {
+    console.error(err)
+
+    setToast({
+      msg: "Failed to save settings",
+      type: "error",
+    })
+  }
+}
 
   const saveAdminCode = () => {
     setCodeError('')
@@ -1156,14 +1345,14 @@ export function AAdmins() {
   useEffect(() => {
   const token = localStorage.getItem("puji_token")
 
-  fetch("https://puji-home-foods-backend.onrender.com/api/orders", {
+  fetch("http://localhost:5000/api/admin/all", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   })
     .then(res => res.json())
     .then(data => {
-      console.log("ORDERS:", data)
+      console.log("ADMINS:", data)
       setData(Array.isArray(data) ? data : [])
     })
     .catch(err => {
@@ -1188,7 +1377,7 @@ const generateInvite = async () => {
 const token = localStorage.getItem('puji_token')
 
 const res = await fetch(
-  'https://puji-home-foods-backend.onrender.com/api/invite/generate',
+  'http://localhost:5000/api/invite/generate',
   {
     method: 'POST',
     headers: {
@@ -1257,7 +1446,49 @@ const copyCode = () => {
   return (
     <div style={{ padding:'1.5rem' }}>
       {toast   && <Toast {...toast} onClose={()=>setToast(null)} />}
-      {confirm && <ConfirmModal msg="Remove this admin?" onConfirm={()=>{ setData(d=>d.filter(r=>r._id!==confirm)); setConfirm(null); setToast({msg:'Admin removed',type:'error'}) }} onCancel={()=>setConfirm(null)} />}
+      {confirm && (
+  <ConfirmModal
+    msg="Remove this admin?"
+    onConfirm={async () => {
+      try {
+        const token = localStorage.getItem("puji_token")
+
+        const res = await fetch(
+          `http://localhost:5000/api/admin/${confirm}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        )
+
+        const data = await res.json()
+
+        if (!res.ok) {
+          throw new Error(data.message)
+        }
+
+        setData(d => d.filter(r => r._id !== confirm))
+
+        setToast({
+          msg: "Admin deleted successfully",
+          type: "success",
+        })
+      } catch (err) {
+        console.error(err)
+
+        setToast({
+          msg: "Delete failed",
+          type: "error",
+        })
+      }
+
+      setConfirm(null)
+    }}
+    onCancel={() => setConfirm(null)}
+  />
+)}
       <Card>
         <div style={{ padding:'1.2rem 1.4rem', borderBottom:'1px solid rgba(201,168,76,.1)', display:'flex', justifyContent:'flex-end', gap:'1rem' }}>
   <ABtn variant="outline" onClick={generateInvite} disabled={inviteLoading}>

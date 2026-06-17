@@ -214,7 +214,7 @@ const { addToWishlist, removeFromWishlist, isWishlisted } = useWishlist()
             src={
               p.image?.startsWith('http')
                 ? p.image
-                : `https://puji-home-foods-backend.onrender.com${p.image}`
+                : `http://localhost:5000${p.image}`
             }
             alt={p.name}
             className="pc-img"

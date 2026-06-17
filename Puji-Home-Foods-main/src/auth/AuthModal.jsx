@@ -200,7 +200,7 @@ function CustomerAuth({ onSuccess, initialTab = 'login' }) {
 
   try {
     const response = await fetch(
-      "https://puji-home-foods-backend.onrender.com/api/users/forgot-password",
+      "http://localhost:5000/api/users/forgot-password",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

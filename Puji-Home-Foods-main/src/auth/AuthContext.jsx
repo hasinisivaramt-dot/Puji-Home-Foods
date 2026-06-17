@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useRef } from 'react'
 
 const AuthContext = createContext(null)
 
-const BASE = 'https://puji-home-foods-backend.onrender.com/api'
+const BASE = 'http://localhost:5000/api'
 
 // ── helper: attach token to every protected request ───────────────
 export function authHeaders() {

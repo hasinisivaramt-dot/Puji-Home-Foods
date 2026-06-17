@@ -1112,7 +1112,7 @@ function OrdersPage({ setPage, user }) {
 
   useEffect(() => {
     console.log('USER OBJECT:', user)
-    fetch('https://puji-home-foods-backend.onrender.com/api/orders')
+    fetch('http://localhost:5000/api/orders')
       .then(res => res.json())
       .then(data => {
         console.log('LATEST ORDER:', data[data.length - 1])
@@ -1196,7 +1196,7 @@ const myOrders = data.filter(o => {
 
   try {
     const response = await fetch(
-  `https://puji-home-foods-backend.onrender.com/api/orders/${order._id}/cancel`,
+  `http://localhost:5000/api/orders/${order._id}/cancel`,
   {
     method: "PUT",
   }
@@ -1272,7 +1272,7 @@ if (path.startsWith("/reset-password/")) {
   const [lastOrder, setLastOrder] = useState({ name: '', amount: 0 })
   
 useEffect(() => {
-  fetch('https://puji-home-foods-backend.onrender.com/api/products')
+  fetch('http://localhost:5000/api/products')
     .then(res => res.json())
     .then(data => {
   console.log(data[0])

@@ -11,14 +11,14 @@ export default function Dashboard({ onNav }) {
   const [users, setUsers] = useState([])
 
   useEffect(() => {
-    fetch('https://puji-home-foods-backend.onrender.com/api/orders')
+    fetch('http://localhost:5000/api/orders')
       .then(r => r.json()).then(d => setOrders(Array.isArray(d) ? d : []))
       .catch(() => {})
-    fetch('https://puji-home-foods-backend.onrender.com/api/products')
+    fetch('http://localhost:5000/api/products')
       .then(r => r.json()).then(d => setProducts(Array.isArray(d) ? d : []))
       .catch(() => {})
       const token = localStorage.getItem('puji_token')
-fetch('https://puji-home-foods-backend.onrender.com/api/users', {
+fetch('http://localhost:5000/api/users', {
   headers: { Authorization: `Bearer ${token}` }
 })
   .then(r => r.json())

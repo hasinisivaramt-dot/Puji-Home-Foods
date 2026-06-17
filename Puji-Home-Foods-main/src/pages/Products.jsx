@@ -8,7 +8,7 @@ export default function Products({ searchTerm, setSearchTerm, setPage }) {
   const [products, setProducts] = useState([])
 
   useEffect(() => {
-    fetch('https://puji-home-foods-backend.onrender.com/api/products')
+    fetch('http://localhost:5000/api/products')
       .then(res => res.json())
       .then(data => setProducts(data))
       .catch(err => console.log(err))

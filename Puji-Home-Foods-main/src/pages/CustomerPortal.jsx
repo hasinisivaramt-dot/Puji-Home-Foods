@@ -25,12 +25,14 @@ export default function CustomerPortal({ setPage, wishlist }) {
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [showCancelModal, setShowCancelModal] = useState(false)
 const [cancelOrderId, setCancelOrderId] = useState(null)
+const [rating, setRating] = useState(5)
+const [reviewText, setReviewText] = useState('')
 
   useEffect(() => {
     const userId = user?.id || user?._id
     if (!userId) return
 
-    fetch(`https://puji-home-foods-backend.onrender.com/api/orders/user/${userId}`)
+    fetch(`http://localhost:5000/api/orders/user/${userId}`)
       .then(res => res.json())
       .then(data => setOrders(Array.isArray(data) ? data : []))
       .catch(err => console.log(err))
@@ -39,7 +41,7 @@ const [cancelOrderId, setCancelOrderId] = useState(null)
   const handleCancelOrder = async (orderId) => {
   try {
       const res = await fetch(
-        `https://puji-home-foods-backend.onrender.com/api/orders/${orderId}/cancel`,
+        `http://localhost:5000/api/orders/${orderId}/cancel`,
         { method: 'PUT' }
       )
       if (!res.ok) throw new Error('Failed')
@@ -58,6 +60,36 @@ const [cancelOrderId, setCancelOrderId] = useState(null)
 
   setShowCancelModal(false)
   setCancelOrderId(null)
+}
+const submitReview = async (product) => {
+  try {
+    const res = await fetch(
+      'http://localhost:5000/api/reviews',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: product.productId,
+          productName: product.name,
+          userId: user?._id || user?.id,
+          customerName: user?.name,
+          rating,
+          review: reviewText,
+        }),
+      }
+    )
+
+    if (!res.ok) throw new Error()
+
+    alert('Review submitted successfully')
+
+    setRating(5)
+    setReviewText('')
+  } catch (err) {
+    alert('Failed to submit review')
+  }
 }
 
   // Use real user data from auth
@@ -357,7 +389,7 @@ color:
   src={
     product.image?.startsWith('http')
       ? product.image
-      : `https://puji-home-foods-backend.onrender.com${product.image}`
+      : `http://localhost:5000${product.image}`
   }
             alt={product.name}
             style={{
@@ -378,6 +410,64 @@ color:
       ))}
 
       <h3>Total Amount: ₹{selectedOrder.totalAmount}</h3>
+      {selectedOrder.orderStatus === 'Delivered' && (
+  <div
+    style={{
+      marginTop: '20px',
+      padding: '20px',
+      border: '1px solid #eee',
+      borderRadius: '12px',
+    }}
+  >
+    <h3>Write a Review</h3>
+
+    <select
+      value={rating}
+      onChange={(e) => setRating(Number(e.target.value))}
+      style={{
+        width: '100%',
+        padding: '10px',
+        marginBottom: '10px',
+      }}
+    >
+      <option value={5}>★★★★★</option>
+      <option value={4}>★★★★</option>
+      <option value={3}>★★★</option>
+      <option value={2}>★★</option>
+      <option value={1}>★</option>
+    </select>
+
+    <textarea
+      placeholder="Write your review..."
+      value={reviewText}
+      onChange={(e) => setReviewText(e.target.value)}
+      rows={4}
+      style={{
+        width: '100%',
+        padding: '12px',
+        borderRadius: '8px',
+        border: '1px solid #ddd',
+      }}
+    />
+
+    <button
+      onClick={() =>
+        submitReview(selectedOrder.products[0])
+      }
+      style={{
+        marginTop: '10px',
+        background: '#8B1A1A',
+        color: '#fff',
+        border: 'none',
+        padding: '10px 20px',
+        borderRadius: '8px',
+        cursor: 'pointer',
+      }}
+    >
+      Submit Review
+    </button>
+  </div>
+)}
 
       <button
         onClick={() => setSelectedOrder(null)}
@@ -509,7 +599,7 @@ function OrderProductImage({ productId, name }) {
 
   useEffect(() => {
     if (!productId) return
-    fetch(`https://puji-home-foods-backend.onrender.com/api/products`)
+    fetch(`http://localhost:5000/api/products`)
       .then(res => res.json())
       .then(allProducts => {
         const found = allProducts.find(p => String(p._id) === String(productId))
@@ -520,7 +610,7 @@ function OrderProductImage({ productId, name }) {
       ? found.image
       : found.image.startsWith('/images/')
       ? found.image
-      : `https://puji-home-foods-backend.onrender.com${found.image}`
+      : `http://localhost:5000${found.image}`
   )
 }
       })
