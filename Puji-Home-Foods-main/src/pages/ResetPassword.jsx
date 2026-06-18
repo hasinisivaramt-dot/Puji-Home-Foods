@@ -11,7 +11,7 @@ export default function ResetPassword() {
 
     try {
       const { data } = await axios.post(
-        `http://localhost:5000/api/users/reset-password/${token}`,
+        `https://puji-home-foods.onrender.com/api/users/reset-password/${token}`,
         { password }
       );
 

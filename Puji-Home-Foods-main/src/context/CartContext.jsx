@@ -4,7 +4,7 @@ import { useAuth } from '../auth/AuthContext'
 
 const CartContext = createContext(null)
 
-const BASE = 'http://localhost:5000/api/cart'
+const BASE = 'https://puji-home-foods.onrender.com/api/cart'
 
 // ── Price utility ─────────────────────────────────────────────────
 export function calculatePrice(basePrice, weightGrams) {

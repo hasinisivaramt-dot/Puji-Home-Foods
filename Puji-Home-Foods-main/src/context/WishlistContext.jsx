@@ -3,7 +3,7 @@ import { useAuth, authHeaders } from '../auth/AuthContext'
 
 const WishlistContext = createContext(null)
 
-const BASE = 'http://localhost:5000/api/wishlist'
+const BASE = 'https://puji-home-foods.onrender.com/api/wishlist'
 function getUserId() {
   try {
     const token = localStorage.getItem('puji_token')

@@ -12,7 +12,7 @@ export default function ForgotPassword() {
 
   try {
       const { data } = await axios.post(
-        "http://localhost:5000/api/users/forgot-password",
+        "https://puji-home-foods.onrender.com/api/users/forgot-password",
         { email }
       );
 

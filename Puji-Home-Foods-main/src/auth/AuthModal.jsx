@@ -200,7 +200,7 @@ function CustomerAuth({ onSuccess, initialTab = 'login' }) {
 
   try {
     const response = await fetch(
-      "http://localhost:5000/api/users/forgot-password",
+      "https://puji-home-foods.onrender.com/api/users/forgot-password",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -361,7 +361,7 @@ function AdminAuth({ onSuccess, initialTab = 'login' }) {
 
   try {
     const response = await fetch(
-  "http://localhost:5000/api/admin/login",
+  "https://puji-home-foods.onrender.com/api/admin/login",
       {
         method: "POST",
         headers: {
@@ -404,7 +404,7 @@ function AdminAuth({ onSuccess, initialTab = 'login' }) {
   if (Object.keys(e).length) { setSignErrors(e); return }
   setLoading(true)
   try {
-    const response = await fetch('http://localhost:5000/api/invite/register-admin', {
+    const response = await fetch('https://puji-home-foods.onrender.com/api/invite/register-admin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

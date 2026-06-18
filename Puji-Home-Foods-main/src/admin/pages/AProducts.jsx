@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Card, Badge, ABtn, SearchBar, DataTable, Toast, ConfirmModal, AC } from '../components/AdminShared'
 
-const BASE = 'http://localhost:5000/api/products'
+const BASE = 'https://puji-home-foods.onrender.com/api/products'
 
 const emptyForm = {
   name: '',
@@ -36,7 +36,7 @@ export default function AProducts() {
   useEffect(() => {
   Promise.all([
     fetch(BASE).then(r => r.json()),
-    fetch("http://localhost:5000/api/categories")
+    fetch("https://puji-home-foods.onrender.com/api/categories")
       .then(r => r.json())
   ])
     .then(([productsData, categoriesData]) => {
@@ -171,7 +171,7 @@ export default function AProducts() {
       key: 'image', label: 'Image',
       render: (v) => (
         <img
-          src={v?.startsWith('http') ? v : `http://localhost:5000/images/${v?.split('/images/')[1] || v || ''}`}
+          src={v?.startsWith('http') ? v : `https://puji-home-foods.onrender.com/images/${v?.split('/images/')[1] || v || ''}`}
           alt=""
           style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', border: '1px solid rgba(201,168,76,.2)' }}
         />

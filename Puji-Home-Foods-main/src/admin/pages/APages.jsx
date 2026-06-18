@@ -49,7 +49,7 @@ export function ACategories() {
   const [data, setData] = useState([])
 
 useEffect(() => {
-  fetch("http://localhost:5000/api/categories")
+  fetch("https://puji-home-foods.onrender.com/api/categories")
     .then(res => res.json())
     .then(data => {
       console.log("Categories:", data)
@@ -74,7 +74,7 @@ useEffect(() => {
   try {
     if (editId) {
       const res = await fetch(
-        `http://localhost:5000/api/categories/${editId}`,
+        `https://puji-home-foods.onrender.com/api/categories/${editId}`,
         {
           method: "PUT",
           headers: {
@@ -96,7 +96,7 @@ useEffect(() => {
       })
     } else {
       const res = await fetch(
-        "http://localhost:5000/api/categories",
+        "https://puji-home-foods.onrender.com/api/categories",
         {
           method: "POST",
           headers: {
@@ -153,7 +153,7 @@ useEffect(() => {
     onConfirm={async () => {
       try {
         await fetch(
-          `http://localhost:5000/api/categories/${confirm}`,
+          `https://puji-home-foods.onrender.com/api/categories/${confirm}`,
           {
             method: "DELETE",
           }
@@ -210,7 +210,7 @@ export function AOrders() {
   useEffect(() => {
   const token = localStorage.getItem("puji_token")
 
-  fetch("http://localhost:5000/api/orders", {
+  fetch("https://puji-home-foods.onrender.com/api/orders", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -245,7 +245,7 @@ export function AOrders() {
   const updateStatus = async (id, status) => {
     try {
       await fetch(
-        `http://localhost:5000/api/orders/${id}/status`,
+        `https://puji-home-foods.onrender.com/api/orders/${id}/status`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -383,7 +383,7 @@ export function ACustomers() {
  useEffect(() => {
   const token = localStorage.getItem("puji_token")
 
-  fetch("http://localhost:5000/api/users", {
+  fetch("https://puji-home-foods.onrender.com/api/users", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -452,7 +452,7 @@ export function APayments() {
   useEffect(() => {
     const token = localStorage.getItem("puji_token")
 
-    fetch("http://localhost:5000/api/orders", {
+    fetch("https://puji-home-foods.onrender.com/api/orders", {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -610,7 +610,7 @@ export function ACoupons() {
   const [confirm, setConfirm] = useState(null)
   const [toast, setToast]     = useState(null)
 
-  const BASE = 'http://localhost:5000/api/coupons'
+  const BASE = 'https://puji-home-foods.onrender.com/api/coupons'
 
   useEffect(() => {
     fetch(BASE)
@@ -775,7 +775,7 @@ export function ADelivery() {
 
   useEffect(() => {
     const token = localStorage.getItem('puji_token')
-    fetch('http://localhost:5000/api/orders', {
+    fetch('https://puji-home-foods.onrender.com/api/orders', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => res.json())
@@ -807,7 +807,7 @@ export function ADelivery() {
   const updateStatus = async (id, deliveryStatus) => {
     const orderStatus = toOrderStatus(deliveryStatus)
     try {
-      await fetch(`http://localhost:5000/api/orders/${id}/status`, {
+      await fetch(`https://puji-home-foods.onrender.com/api/orders/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderStatus }),
@@ -939,7 +939,7 @@ export function AReviews() {
   const [toast, setToast] = useState(null)
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/reviews')
+    fetch('https://puji-home-foods.onrender.com/api/reviews')
       .then(res => res.json())
       .then(data => {
         setData(Array.isArray(data) ? data : [])
@@ -966,7 +966,7 @@ export function AReviews() {
           : 'approve'
 
       const res = await fetch(
-        `http://localhost:5000/api/reviews/${endpoint}/${review._id}`,
+        `https://puji-home-foods.onrender.com/api/reviews/${endpoint}/${review._id}`,
         {
           method: 'PUT',
         }
@@ -1122,7 +1122,7 @@ export function ASettings() {
     currentPwd:'', newPwd:'', confirmPwd:'',
   })
   useEffect(() => {
-  fetch("http://localhost:5000/api/store-settings")
+  fetch("https://puji-home-foods.onrender.com/api/store-settings")
     .then(res => res.json())
     .then(data => {
       setForm(f => ({
@@ -1154,7 +1154,7 @@ export function ASettings() {
   const save = async () => {
   try {
     const res = await fetch(
-      "http://localhost:5000/api/store-settings",
+      "https://puji-home-foods.onrender.com/api/store-settings",
       {
         method: "PUT",
         headers: {
@@ -1345,7 +1345,7 @@ export function AAdmins() {
   useEffect(() => {
   const token = localStorage.getItem("puji_token")
 
-  fetch("http://localhost:5000/api/admin/all", {
+  fetch("https://puji-home-foods.onrender.com/api/admin/all", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -1377,7 +1377,7 @@ const generateInvite = async () => {
 const token = localStorage.getItem('puji_token')
 
 const res = await fetch(
-  'http://localhost:5000/api/invite/generate',
+  'https://puji-home-foods.onrender.com/api/invite/generate',
   {
     method: 'POST',
     headers: {
@@ -1454,7 +1454,7 @@ const copyCode = () => {
         const token = localStorage.getItem("puji_token")
 
         const res = await fetch(
-          `http://localhost:5000/api/admin/${confirm}`,
+          `https://puji-home-foods.onrender.com/api/admin/${confirm}`,
           {
             method: "DELETE",
             headers: {

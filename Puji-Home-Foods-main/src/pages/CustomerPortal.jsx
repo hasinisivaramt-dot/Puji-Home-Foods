@@ -32,7 +32,7 @@ const [reviewText, setReviewText] = useState('')
     const userId = user?.id || user?._id
     if (!userId) return
 
-    fetch(`http://localhost:5000/api/orders/user/${userId}`)
+    fetch(`https://puji-home-foods.onrender.com/api/orders/user/${userId}`)
       .then(res => res.json())
       .then(data => setOrders(Array.isArray(data) ? data : []))
       .catch(err => console.log(err))
@@ -41,7 +41,7 @@ const [reviewText, setReviewText] = useState('')
   const handleCancelOrder = async (orderId) => {
   try {
       const res = await fetch(
-        `http://localhost:5000/api/orders/${orderId}/cancel`,
+        `https://puji-home-foods.onrender.com/api/orders/${orderId}/cancel`,
         { method: 'PUT' }
       )
       if (!res.ok) throw new Error('Failed')
@@ -64,7 +64,7 @@ const [reviewText, setReviewText] = useState('')
 const submitReview = async (product) => {
   try {
     const res = await fetch(
-      'http://localhost:5000/api/reviews',
+      'https://puji-home-foods.onrender.com/api/reviews',
       {
         method: 'POST',
         headers: {
@@ -389,7 +389,7 @@ color:
   src={
     product.image?.startsWith('http')
       ? product.image
-      : `http://localhost:5000${product.image}`
+      : `https://puji-home-foods.onrender.com${product.image}`
   }
             alt={product.name}
             style={{
@@ -599,7 +599,7 @@ function OrderProductImage({ productId, name }) {
 
   useEffect(() => {
     if (!productId) return
-    fetch(`http://localhost:5000/api/products`)
+    fetch(`https://puji-home-foods.onrender.com/api/products`)
       .then(res => res.json())
       .then(allProducts => {
         const found = allProducts.find(p => String(p._id) === String(productId))
@@ -610,7 +610,7 @@ function OrderProductImage({ productId, name }) {
       ? found.image
       : found.image.startsWith('/images/')
       ? found.image
-      : `http://localhost:5000${found.image}`
+      : `https://puji-home-foods.onrender.com${found.image}`
   )
 }
       })
