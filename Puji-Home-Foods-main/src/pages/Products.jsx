@@ -4,6 +4,9 @@ import ProductCard from '../components/ProductCard'
 const C = { gold: '#C9A84C' }
 
 export default function Products({ searchTerm, setSearchTerm, setPage }) {
+  useEffect(() => {
+  window.scrollTo(0, 0)
+}, [])
   const [category, setCategory] = useState('All')
   const [products, setProducts] = useState([])
 

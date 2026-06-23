@@ -6,7 +6,7 @@ const C = {
   darkRed: '#6B0F0F', cream: '#F5ECD7', brown: '#2A1005',
 }
 
-export default function UserMenu({ setPage }) {
+export default function UserMenu({ setPage, hideOnMobile = false }) {
   const { user, logout, openAuth } = useAuth()
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -17,25 +17,31 @@ export default function UserMenu({ setPage }) {
     return () => document.removeEventListener('mousedown', h)
   }, [])
 
+  if (hideOnMobile && !user) {
+    return null
+  }
+
   // ── Not logged in — show Login + Signup, both open portal picker ──
   if (!user) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', minWidth: 0 }}>
         <button
           onClick={() => openAuth('picker')}   // always open at portal picker
-          style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(201,168,76,.22)', color: C.cream, padding: '6px 14px', borderRadius: 20, fontSize: '.76rem', fontWeight: 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all .3s', display: 'flex', alignItems: 'center', gap: 6 }}
+          style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(201,168,76,.22)', color: C.cream,padding: window.innerWidth < 768 ? '4px 8px' : '6px 14px',
+fontSize: window.innerWidth < 768 ? '.65rem' : '.76rem', borderRadius: 20,  fontWeight: 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all .3s', display: 'flex', alignItems: 'center', gap: 6 }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = C.gold; e.currentTarget.style.color = C.goldL }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,.22)'; e.currentTarget.style.color = C.cream }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
           </svg>
-          Login
+         LOGIN 
         </button>
 
         <button
-  onClick={() => openAuth('picker-signup')}
-          style={{ background: `linear-gradient(135deg,${C.crimson},${C.darkRed})`, border: '1px solid rgba(201,168,76,.28)', color: 'white', padding: '6px 15px', borderRadius: 20, fontSize: '.76rem', fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 4px 14px rgba(107,15,15,.4)', transition: 'all .3s' }}
+          onClick={() => openAuth('picker-signup')}
+          style={{ background: `linear-gradient(135deg,${C.crimson},${C.darkRed})`, border: '1px solid rgba(201,168,76,.28)', color: 'white',padding: window.innerWidth < 768 ? '4px 8px' : '6px 15px',
+fontSize: window.innerWidth < 768 ? '.65rem' : '.76rem',borderRadius: 20,  fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", boxShadow: '0 4px 14px rgba(107,15,15,.4)', transition: 'all .3s' }}
           onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 0 0 1px ${C.gold}, 0 8px 20px rgba(107,15,15,.5)` }}
           onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 14px rgba(107,15,15,.4)' }}
         >✨ Sign Up</button>

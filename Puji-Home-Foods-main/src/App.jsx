@@ -220,7 +220,7 @@ function Navbar({ onCartClick, page, setPage }) {
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 2rem', height: scrolled ? 64 : 72,
+      padding: window.innerWidth < 768 ? '0 0.3rem' : '0 2rem', height: scrolled ? 64 : 72,
       background: scrolled ? 'rgba(26,4,0,.97)' : 'rgba(26,4,0,.85)',
       backdropFilter: 'blur(20px)',
       borderBottom: '1px solid rgba(201,168,76,.22)',
@@ -231,7 +231,7 @@ function Navbar({ onCartClick, page, setPage }) {
       <a
         href="#home"
         onClick={() => setPage('home')}
-        style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}
+        style={{ display: 'flex', alignItems: 'center', gap: 2, textDecoration: 'none', flexShrink: 0 }}
       >
         <img
   src={IMG.logo}
@@ -311,7 +311,7 @@ function Navbar({ onCartClick, page, setPage }) {
   style={{
     display: 'flex',
     alignItems: 'center',
-    gap: '.5rem',
+    gap: window.innerWidth < 768 ? '.25rem' : '.5rem',
     flexShrink: 0
   }}
 >
@@ -428,7 +428,7 @@ function WishlistNavBtn({ setPage }) {
 }
 
 // ── Hero ──────────────────────────────────────────────────────────
-function Hero() {
+function Hero({ setPage }) {
   const [cur, setCur] = useState(0)
   const timer = useRef(null)
 
@@ -470,11 +470,35 @@ function Hero() {
           Prepared with Traditional Recipes, Fresh Ingredients and Delivered with Love.
         </p>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', animation: 'fadeUp .8s .48s ease both' }}>
-          <a href="#best-sellers"
-            style={{ display: 'flex', alignItems: 'center', gap: 8, background: `linear-gradient(135deg,${C.crimson},${C.darkRed})`, color: 'white', padding: '13px 28px', borderRadius: 50, fontWeight: 600, fontSize: '.9rem', textDecoration: 'none', border: '1px solid rgba(255,255,255,.14)', boxShadow: '0 8px 28px rgba(107,15,15,.5)', transition: 'all .3s' }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 0 0 1.5px #C9A84C, 0 14px 38px rgba(107,15,15,.6)' }}
-            onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 8px 28px rgba(107,15,15,.5)' }}
-          >Shop Now →</a>
+          <button
+  onClick={() => setPage('products')}
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    background: `linear-gradient(135deg,${C.crimson},${C.darkRed})`,
+    color: 'white',
+    padding: '13px 28px',
+    borderRadius: 50,
+    fontWeight: 600,
+    fontSize: '.9rem',
+    border: '1px solid rgba(255,255,255,.14)',
+    boxShadow: '0 8px 28px rgba(107,15,15,.5)',
+    cursor: 'pointer'
+  }}
+  onMouseEnter={e => {
+    e.currentTarget.style.transform = 'translateY(-3px)'
+    e.currentTarget.style.boxShadow =
+      '0 0 0 1.5px #C9A84C, 0 14px 38px rgba(107,15,15,.6)'
+  }}
+  onMouseLeave={e => {
+    e.currentTarget.style.transform = ''
+    e.currentTarget.style.boxShadow =
+      '0 8px 28px rgba(107,15,15,.5)'
+  }}
+>
+  Shop Now →
+</button>
           <a href="#categories"
             style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,.08)', color: C.goldL, padding: '13px 28px', borderRadius: 50, fontWeight: 600, fontSize: '.9rem', textDecoration: 'none', border: '1px solid rgba(201,168,76,.42)', backdropFilter: 'blur(10px)', transition: 'all .3s' }}
             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.background = 'rgba(201,168,76,.15)'; e.currentTarget.style.boxShadow = '0 0 0 1.5px #C9A84C' }}
@@ -766,9 +790,32 @@ function Gallery() {
     >
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 2rem' }}>
         <SectionHeader label="Visual Feast" title="Our" gold="Gallery" sub="A glimpse into the rich, vibrant world of our handcrafted specialties" dark={false} />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem' }}>
+       <div
+  style={{
+    display: 'grid',
+    gridTemplateColumns: window.innerWidth < 768 
+      ? '1.3fr 1fr 1fr' 
+      : 'repeat(4,1fr)',
+    gridAutoRows: window.innerWidth < 768 ? '120px' : '155px',
+    gap: window.innerWidth < 768 ? '0.75rem' : '1rem'
+  }}
+>
           {GALLERY_ITEMS.map((it, i) => (
-            <Reveal key={it.name} delay={i * 0.1} style={{ gridColumn: i === 0 ? 'span 2' : 'auto', gridRow: i === 0 ? 'span 2' : 'auto' }}>
+            <Reveal
+ key={it.name}
+ delay={i * 0.1}
+ style={
+   window.innerWidth < 768
+   ? {
+       gridColumn: i === 0 ? 'span 1' : i === 3 ? 'span 2' : 'span 1',
+       gridRow: i === 0 ? 'span 2' : i === 3 ? 'span 1' : 'span 1'
+     }
+   : {
+       gridColumn: i === 0 ? 'span 2' : 'auto',
+       gridRow: i === 0 ? 'span 2' : 'auto'
+     }
+ }
+>
               <GalleryItem it={it} onClick={() => setLb(it.img)} tall={i === 0} />
             </Reveal>
           ))}
@@ -792,9 +839,30 @@ function GalleryItem({ it, onClick, tall }) {
       onClick={onClick}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
-      style={{ position: 'relative', overflow: 'hidden', borderRadius: 16, cursor: 'pointer', border: `1px solid ${hov ? C.gold : 'rgba(201,168,76,.15)'}`, height: '100%', minHeight: tall ? 320 : 155, transition: 'border-color .35s, box-shadow .35s', boxShadow: hov ? '0 0 0 1.5px #C9A84C, 0 12px 30px rgba(201,168,76,.14)' : 'none' }}
+      style={{
+  position: 'relative',
+  overflow: 'hidden',
+  borderRadius: 16,
+  cursor: 'pointer',
+  border: `1px solid ${hov ? C.gold : 'rgba(201,168,76,.15)'}`,
+  height: '100%',
+minHeight: 0,
+  transition: 'border-color .35s, box-shadow .35s',
+  boxShadow: hov
+    ? '0 0 0 1.5px #C9A84C, 0 12px 30px rgba(201,168,76,.14)'
+    : 'none'
+}}
     >
-      <img src={it.img} alt={it.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: it.pos || 'center', display: 'block', transition: 'transform .5s ease, filter .4s', filter: hov ? 'brightness(1.05)' : 'brightness(.93)', transform: hov ? 'scale(1.07)' : 'scale(1)' }} />
+    <img 
+ src={it.img}
+ alt={it.name}
+ style={{
+   width:'100%',
+   height:'100%',
+   objectFit:'cover',
+   objectPosition: it.pos || 'center',
+ }}
+/>
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(26,4,0,.88) 0%,transparent 55%)', display: 'flex', alignItems: 'flex-end', padding: '1.1rem', opacity: hov ? 1 : 0, transition: 'opacity .4s' }}>
         <div>
           <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '1rem', color: 'white' }}>{it.name}</div>
@@ -2256,7 +2324,7 @@ cursor: 'pointer',
   return (
     <>
       <Navbar page={page} setPage={setPage} onCartClick={() => setPage('cart')} />
-      <Hero />
+      <Hero setPage={setPage} />
       <SectionDivider />
       <AboutUs />
       <SectionDivider />
