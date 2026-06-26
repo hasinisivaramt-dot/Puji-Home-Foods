@@ -32,7 +32,17 @@ fetch('https://puji-home-foods.onrender.com/api/users', {
   const recentOrders = orders.slice(0, 6)
 
   return (
-    <div style={{ padding:'1.5rem', display:'flex', flexDirection:'column', gap:'1.5rem' }}>
+   <div
+  style={{
+    padding:
+      window.innerWidth <= 768
+        ? '1rem'
+        : '1.5rem',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1.5rem',
+  }}
+>
 
       {/* Stats */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:'1rem' }}>
@@ -45,13 +55,22 @@ fetch('https://puji-home-foods.onrender.com/api/users', {
       </div>
 
       {/* Charts row */}
-      <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:'1.5rem' }}>
+     <div
+  style={{
+    display: 'grid',
+    gridTemplateColumns:
+      window.innerWidth <= 768
+        ? '1fr'
+        : '2fr 1fr',
+    gap: '1.5rem',
+  }}
+>
         <Card>
           <div style={{ padding:'1.2rem 1.4rem', borderBottom:'1px solid rgba(201,168,76,.1)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
             <div style={{ fontFamily:"'Playfair Display',serif", fontSize:'1rem', fontWeight:700, color:'#1a0400' }}>Revenue Overview</div>
             <span style={{ fontSize:'.72rem', color:'#9a6040' }}>2026</span>
           </div>
-          <div style={{ padding:'1rem', height:240 }}>
+          <div style={{ padding:'1rem',height: window.innerWidth <= 768 ? 220 : 240 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={revenueData}>
                 <defs><linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={AC.crimson} stopOpacity={0.3}/><stop offset="95%" stopColor={AC.crimson} stopOpacity={0}/></linearGradient></defs>
@@ -69,7 +88,7 @@ fetch('https://puji-home-foods.onrender.com/api/users', {
           <div style={{ padding:'1.2rem 1.4rem', borderBottom:'1px solid rgba(201,168,76,.1)' }}>
             <div style={{ fontFamily:"'Playfair Display',serif", fontSize:'1rem', fontWeight:700, color:'#1a0400' }}>Sales by Category</div>
           </div>
-          <div style={{ padding:'1rem', height:240 }}>
+          <div style={{ padding:'1rem', height: window.innerWidth <= 768 ? 220 : 240 }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={categoryData} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={4} dataKey="value">
@@ -84,12 +103,21 @@ fetch('https://puji-home-foods.onrender.com/api/users', {
       </div>
 
       {/* Orders + Top Products */}
-      <div style={{ display:'grid', gridTemplateColumns:'3fr 2fr', gap:'1.5rem' }}>
+      <div
+  style={{
+    display: 'grid',
+    gridTemplateColumns:
+      window.innerWidth <= 768
+        ? '1fr'
+        : '3fr 2fr',
+    gap: '1.5rem',
+  }}
+>
         <Card>
           <div style={{ padding:'1.2rem 1.4rem', borderBottom:'1px solid rgba(201,168,76,.1)' }}>
             <div style={{ fontFamily:"'Playfair Display',serif", fontSize:'1rem', fontWeight:700, color:'#1a0400' }}>Orders Overview</div>
           </div>
-          <div style={{ padding:'1rem', height:220 }}>
+          <div style={{ padding:'1rem', height: window.innerWidth <= 768 ? 200 : 220 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={ordersData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(201,168,76,.1)" />
@@ -121,13 +149,27 @@ fetch('https://puji-home-foods.onrender.com/api/users', {
       </div>
 
       {/* Recent orders + Low stock */}
-      <div style={{ display:'grid', gridTemplateColumns:'3fr 2fr', gap:'1.5rem' }}>
+      <div
+  style={{
+    display: 'grid',
+    gridTemplateColumns:
+      window.innerWidth <= 768
+        ? '1fr'
+        : '3fr 2fr',
+    gap: '1.5rem',
+  }}
+>
         <Card>
           <div style={{ padding:'1.2rem 1.4rem', borderBottom:'1px solid rgba(201,168,76,.1)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
             <div style={{ fontFamily:"'Playfair Display',serif", fontSize:'1rem', fontWeight:700, color:'#1a0400' }}>Recent Orders</div>
             <ABtn size="sm" variant="outline" onClick={() => onNav('orders')}>View All</ABtn>
           </div>
-          <div style={{ overflowX:'auto' }}>
+          <div
+  style={{
+    overflowX: 'auto',
+    WebkitOverflowScrolling: 'touch',
+  }}
+>
             <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'.8rem' }}>
               <thead>
                 <tr style={{ background:'rgba(201,168,76,.06)', borderBottom:'1px solid rgba(201,168,76,.1)' }}>

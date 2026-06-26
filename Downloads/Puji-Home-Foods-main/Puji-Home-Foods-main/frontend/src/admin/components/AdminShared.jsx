@@ -233,9 +233,40 @@ const menuItems = [
   { key:'admins',     label:'Admins',            icon:'admins'     },
 ]
 
-export function Sidebar({ active, onNav, collapsed, onLogout }) {
+export function Sidebar({
+  active,
+  onNav,
+  collapsed,
+  mobileMenu,
+  onLogout
+}) {
   return (
-    <div style={{ width: collapsed ? 64 : AC.sidebarW, flexShrink:0, background: AC.sidebar, borderRight:'1px solid rgba(201,168,76,.15)', display:'flex', flexDirection:'column', height:'100vh', position:'sticky', top:0, transition:'width .3s ease', overflow:'hidden' }}>
+    <div style={{
+  width: collapsed ? 64 : AC.sidebarW,
+  flexShrink: 0,
+  background: AC.sidebar,
+  borderRight: '1px solid rgba(201,168,76,.15)',
+  display: 'flex',
+  flexDirection: 'column',
+  height: '100vh',
+  transition: 'all .3s ease',
+  overflow: 'hidden',
+
+  position:
+    window.innerWidth <= 768
+      ? 'fixed'
+      : 'sticky',
+
+  left:
+    window.innerWidth <= 768
+      ? mobileMenu
+        ? 0
+        : -AC.sidebarW
+      : 0,
+
+  top: 0,
+  zIndex: 999,
+}}>
       {/* Logo */}
       <div style={{ padding: collapsed ? '1.2rem .8rem' : '1.2rem 1.2rem', borderBottom:'1px solid rgba(201,168,76,.15)', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
         <img src="/images/logo.png" alt="Puji" style={{ width:36, height:36, borderRadius:'50%', objectFit:'cover', border:`1.5px solid ${AC.gold}`, flexShrink:0 }} />
@@ -399,7 +430,10 @@ export function Topbar({ title, onToggle, user, onLogout, onNav }) {
         </div>
       )}
 
-      <div style={{ height:64, background:'white', borderBottom:'1px solid rgba(201,168,76,.15)', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 1.5rem', flexShrink:0, boxShadow:'0 2px 8px rgba(0,0,0,.05)', position:'sticky', top:0, zIndex:100 }}>
+      <div style={{ height:64, background:'white', borderBottom:'1px solid rgba(201,168,76,.15)', display:'flex', alignItems:'center', justifyContent:'space-between',padding:
+  window.innerWidth <= 768
+    ? '0 1rem'
+    : '0 1.5rem', flexShrink:0, boxShadow:'0 2px 8px rgba(0,0,0,.05)', position:'sticky', top:0, zIndex:100 }}>
         {/* Left */}
         <div style={{ display:'flex', alignItems:'center', gap:'1rem' }}>
           <button onClick={onToggle} style={{ background:'none', border:'none', cursor:'pointer', padding:6, lineHeight:0 }}>

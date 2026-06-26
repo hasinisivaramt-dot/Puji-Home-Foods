@@ -25,7 +25,8 @@ const PAGE_TITLES = {
 
 export default function AdminDashboard({ user, onLogout }) {
   const [page, setPage]           = useState('dashboard')
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(window.innerWidth <= 768)
+const [mobileMenu, setMobileMenu] = useState(false)
 
   const renderPage = () => {
     switch (page) {
@@ -53,17 +54,39 @@ export default function AdminDashboard({ user, onLogout }) {
       fontFamily: "'DM Sans', sans-serif",
       overflow: 'hidden',
     }}>
-      <Sidebar
-        active={page}
-        onNav={setPage}
-        collapsed={collapsed}
-        onLogout={onLogout}
-      />
+     <Sidebar
+  active={page}
+  onNav={(p) => {
+    setPage(p)
+    setMobileMenu(false)
+  }}
+  collapsed={collapsed}
+  mobileMenu={mobileMenu}
+  onLogout={onLogout}
+/>
+{mobileMenu && window.innerWidth <= 768 && (
+  <div
+    onClick={() => setMobileMenu(false)}
+    style={{
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0,0,0,.45)',
+      zIndex: 998,
+    }}
+  />
+)}
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <Topbar
           title={PAGE_TITLES[page] || 'Dashboard'}
-          onToggle={() => setCollapsed(c => !c)}
+          onToggle={() => {
+  if (window.innerWidth <= 768) {
+    setMobileMenu(m => !m)
+  } else {
+    setCollapsed(c => !c)
+  }
+}}
+
           user={user}
           onLogout={onLogout}
           onNav={setPage}
