@@ -716,3 +716,28 @@ justify-content:center;
 }
 
 }
+/* ===== HERO SLIDER ARROWS - MOBILE ===== */
+@media (max-width: 768px) {
+  .hero-arrow {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;
+    background: rgba(201, 168, 76, 0.85) !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+  }
+
+  .hero-arrow svg {
+    font-size: 18px !important;
+    color: white !important;
+  }
+
+  .left-arrow {
+    left: 12px !important;
+  }
+
+  .right-arrow {
+    right: 12px !important;
+  }
+}

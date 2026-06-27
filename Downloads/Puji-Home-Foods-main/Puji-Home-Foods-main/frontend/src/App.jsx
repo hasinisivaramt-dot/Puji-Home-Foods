@@ -603,13 +603,34 @@ function Hero({ setPage }) {
         </div>
       </div>
 
-      {[['‹', 'left', () => go(-1)], ['›', 'right', () => go(1)]].map(([ch, side, fn]) => (
-        <button key={side} onClick={fn} style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', [side]: '1.8rem', zIndex: 10, background: 'rgba(255,255,255,.1)', border: '1px solid rgba(201,168,76,.3)', color: C.goldL, width: 46, height: 46, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 22, backdropFilter: 'blur(10px)', transition: 'all .3s' }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,168,76,.2)'; e.currentTarget.style.boxShadow = '0 0 0 1.5px #C9A84C' }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,.1)'; e.currentTarget.style.boxShadow = 'none' }}
-        >{ch}</button>
-      ))}
-
+    {window.innerWidth > 768 &&
+  [['‹', 'left', () => go(-1)], ['›', 'right', () => go(1)]].map(([ch, side, fn]) => (
+    <button
+      key={side}
+      onClick={fn}
+      style={{
+        position: 'absolute',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        [side]: '1.8rem',
+        zIndex: 10,
+        background: 'rgba(255,255,255,.1)',
+        border: '1px solid rgba(201,168,76,.3)',
+        color: C.goldL,
+        width: 46,
+        height: 46,
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        fontSize: 22,
+        backdropFilter: 'blur(10px)',
+      }}
+    >
+      {ch}
+    </button>
+  ))}
       <div style={{ position: 'absolute', bottom: 90, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 10, zIndex: 10 }}>
         {HERO_SLIDES.map((_, i) => (
           <button key={i} onClick={() => setCur(i)} style={{ width: i === cur ? 28 : 8, height: 8, borderRadius: i === cur ? 4 : '50%', background: i === cur ? C.gold : 'rgba(255,255,255,.4)', border: 'none', cursor: 'pointer', transition: 'all .35s', padding: 0 }} />
