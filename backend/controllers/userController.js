@@ -194,22 +194,25 @@ const forgotPassword = async (req, res) => {
       },
     });
 
-    const resetUrl = `https://YOUR-VERCEL-APP.vercel.app/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-    transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: user.email,
-      subject: "Password Reset",
-      html: `
-        <h2>Password Reset</h2>
-        <p>Click below to reset your password:</p>
-        <a href="${resetUrl}">${resetUrl}</a>
-      `,
-    })
-    .then(() => { console.log("Reset email sent"); })
-    .catch((err) => { console.log("Email Error:", err); });
-
-    res.status(200).json({ message: "Reset link sent to email" });
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: "Password Reset",
+        html: `
+          <h2>Password Reset</h2>
+          <p>Click below to reset your password:</p>
+          <a href="${resetUrl}">${resetUrl}</a>
+        `,
+      });
+      console.log("Reset email sent");
+      res.status(200).json({ message: "Reset link sent to email" });
+    } catch (emailErr) {
+      console.log("Email Error:", emailErr);
+      res.status(500).json({ message: "Failed to send reset email. Please try again later." });
+    }
   } catch (error) {
     console.log("EMAIL ERROR:", error);
     res.status(500).json({ message: "Server Error" });

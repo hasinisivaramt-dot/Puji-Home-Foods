@@ -18,6 +18,7 @@ const inviteCodeRoutes = require("./routes/inviteCodeRoutes");
 const couponRoutes = require("./routes/couponRoutes");
 const storeSettingsRoutes = require("./routes/storeSettingsRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
+const addressRoutes = require("./routes/addressRoutes");
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use("/api/invite", inviteCodeRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/store-settings", storeSettingsRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/addresses", addressRoutes);
 
 // Test Route
 app.get("/", (req, res) => {
