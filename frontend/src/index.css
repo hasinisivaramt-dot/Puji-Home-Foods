@@ -735,3 +735,10 @@ grid-template-columns:1fr !important;
     width: 100%;
   }
 }
+@media (max-width: 768px) {
+  .cart-grid {
+    grid-template-columns: 1fr !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}

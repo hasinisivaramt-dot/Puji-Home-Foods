@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { products as localProducts } from './data'
 import { useCart } from './context/CartContext'
 import { CartProvider } from './context/CartContext'
-import { useAuth } from './auth/AuthContext'
+import { useAuth, authHeaders } from './auth/AuthContext'
 import { AuthProvider } from './auth/AuthContext'
 import { WishlistProvider, useWishlist } from './context/WishlistContext'
 import AuthModal from './auth/AuthModal'
@@ -366,6 +366,7 @@ const { totalItems } = useCart()
 
   return (
     <nav
+  ref={menuRef}
   style={{
     position: 'fixed',
     top: 0,
@@ -383,7 +384,6 @@ const { totalItems } = useCart()
       transition: 'all .4s ease',
     }}>
       <div
-  ref={menuRef}
   style={{
     display: 'flex',
     alignItems: 'center',
@@ -1510,7 +1510,289 @@ const myOrders = data.filter(o => {
     </div>
   )
 }
+function AddressesPage({ setPage, user }) {
+  const isMobile = window.innerWidth <= 768
+  const [addresses, setAddresses] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [editingId, setEditingId] = useState(null)
+  const [form, setForm] = useState({ label: 'Home', name: '', phone: '', addressLine: '', city: '', state: '', pincode: '' })
+  const [saving, setSaving] = useState(false)
+  const [deleteId, setDeleteId] = useState(null)
 
+  const BASE = 'https://puji-home-foods.onrender.com/api/addresses'
+
+  const fetchAddresses = () => {
+    setLoading(true)
+    fetch(BASE, { headers: authHeaders() })
+      .then(res => res.json())
+      .then(data => setAddresses(Array.isArray(data) ? data : []))
+      .catch(() => setAddresses([]))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    if (user) fetchAddresses()
+    else setLoading(false)
+  }, [user])
+
+  const openAddModal = () => {
+    setEditingId(null)
+    setForm({ label: 'Home', name: '', phone: '', addressLine: '', city: '', state: '', pincode: '' })
+    setShowModal(true)
+  }
+
+  const openEditModal = (addr) => {
+    setEditingId(addr._id)
+    setForm({
+      label: addr.label, name: addr.name, phone: addr.phone,
+      addressLine: addr.addressLine, city: addr.city, state: addr.state, pincode: addr.pincode,
+    })
+    setShowModal(true)
+  }
+
+  const handleSave = async () => {
+    if (!form.name || !form.phone || !form.addressLine || !form.city || !form.state || !form.pincode) {
+      alert('Please fill in all fields')
+      return
+    }
+    setSaving(true)
+    try {
+      const url = editingId ? `${BASE}/${editingId}` : BASE
+      const method = editingId ? 'PUT' : 'POST'
+      const res = await fetch(url, {
+        method,
+        headers: authHeaders(),
+        body: JSON.stringify(form),
+      })
+      if (!res.ok) throw new Error('Failed to save')
+      setShowModal(false)
+      fetchAddresses()
+    } catch (err) {
+      alert('Failed to save address')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    try {
+      await fetch(`${BASE}/${deleteId}`, { method: 'DELETE', headers: authHeaders() })
+      setDeleteId(null)
+      fetchAddresses()
+    } catch (err) {
+      alert('Failed to delete address')
+    }
+  }
+
+  const addressCardStyle = {
+    background: '#fff',
+    padding: isMobile ? '20px' : '25px',
+    borderRadius: '16px',
+    boxShadow: '0 4px 15px rgba(0,0,0,.08)',
+    border: '1px solid #f0e6d3',
+  }
+  const actionBtnStyle = {
+    padding: '8px 16px',
+    borderRadius: '8px',
+    fontSize: '.82rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    border: '1.5px solid rgba(139,26,26,.25)',
+    background: 'transparent',
+    color: '#8B1A1A',
+  }
+  const deleteBtnStyle = { ...actionBtnStyle, border: '1.5px solid rgba(220,38,38,.3)', color: '#dc2626' }
+  const inputStyle = {
+    width: '100%', padding: '10px 12px', borderRadius: 8,
+    border: '1.5px solid rgba(201,168,76,.3)', outline: 'none',
+    fontSize: '.88rem', marginBottom: '12px',
+  }
+
+  return (
+    <>
+      <Navbar page="addresses" setPage={setPage} onCartClick={() => setPage('cart')} />
+
+      <div style={{ minHeight: '100vh', padding: isMobile ? '100px 20px 40px' : '120px 40px', background: '#F5ECD7' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            justifyContent: 'space-between',
+            alignItems: isMobile ? 'flex-start' : 'center',
+            gap: isMobile ? '16px' : '0',
+            marginBottom: '25px',
+          }}
+        >
+          <h1 style={{ color: '#3D0000', fontSize: isMobile ? '1.8rem' : '2.2rem', margin: 0 }}>
+            Saved Addresses
+          </h1>
+          <button
+            onClick={() => setPage('portal')}
+            style={{
+              background: '#8B1A1A', color: '#fff', border: 'none', padding: '10px 18px',
+              borderRadius: '8px', cursor: 'pointer', fontWeight: 600,
+              alignSelf: isMobile ? 'flex-start' : 'center',
+            }}
+          >
+            ← Back to Portal
+          </button>
+        </div>
+
+        {!user ? (
+          <div style={{ ...addressCardStyle, textAlign: 'center', padding: '50px' }}>
+            <p>Please log in to manage your addresses.</p>
+          </div>
+        ) : loading ? (
+          <div style={{ textAlign: 'center', padding: '3rem', color: '#9a6040' }}>Loading addresses...</div>
+        ) : (
+          <>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit,minmax(350px,1fr))',
+                gap: '20px',
+              }}
+            >
+              {addresses.length === 0 ? (
+                <div style={{ ...addressCardStyle, textAlign: 'center', gridColumn: '1/-1' }}>
+                  <p style={{ margin: 0, color: '#9a6040' }}>No saved addresses yet.</p>
+                </div>
+              ) : (
+                addresses.map(addr => (
+                  <div key={addr._id} style={addressCardStyle}>
+                    <h3 style={{ color: '#3D0000', marginBottom: '10px', fontSize: '1.1rem' }}>
+                      {addr.label === 'Office' ? '🏢' : '🏠'} {addr.label}
+                    </h3>
+                    <p style={{ margin: '0 0 4px', fontWeight: 700, color: '#1a0400' }}>{addr.name}</p>
+                    <p style={{ margin: '0 0 8px', color: '#5a2e10', lineHeight: 1.6, fontSize: '.9rem' }}>
+                      {addr.addressLine}, {addr.city}, {addr.state} - {addr.pincode}
+                    </p>
+                    <p style={{ margin: 0, color: '#5a2e10', fontSize: '.9rem' }}>📞 {addr.phone}</p>
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+                      <button style={actionBtnStyle} onClick={() => openEditModal(addr)}>Edit</button>
+                      <button style={deleteBtnStyle} onClick={() => setDeleteId(addr._id)}>Delete</button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <button
+              onClick={openAddModal}
+              style={{
+                marginTop: '30px', width: isMobile ? '100%' : 'auto', background: '#8B1A1A',
+                color: '#fff', border: 'none', padding: '13px 22px', borderRadius: '10px',
+                cursor: 'pointer', fontWeight: 600, fontSize: '.95rem',
+                boxShadow: '0 4px 14px rgba(139,26,26,.25)',
+              }}
+            >
+              + Add New Address
+            </button>
+          </>
+        )}
+      </div>
+
+      {showModal && (
+        <div
+          onClick={() => setShowModal(false)}
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', zIndex: 9999, padding: '20px',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: '#fff', width: '100%', maxWidth: 480, borderRadius: 16, padding: 24, maxHeight: '90vh', overflowY: 'auto' }}
+          >
+            <h2 style={{ marginTop: 0, color: '#3D0000' }}>{editingId ? 'Edit Address' : 'Add New Address'}</h2>
+
+            <label style={{ fontSize: '.8rem', fontWeight: 600, color: '#7a4020' }}>Label</label>
+            <select
+              value={form.label}
+              onChange={e => setForm(f => ({ ...f, label: e.target.value }))}
+              style={inputStyle}
+            >
+              <option value="Home">Home</option>
+              <option value="Office">Office</option>
+              <option value="Other">Other</option>
+            </select>
+
+            <label style={{ fontSize: '.8rem', fontWeight: 600, color: '#7a4020' }}>Full Name</label>
+            <input style={inputStyle} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+
+            <label style={{ fontSize: '.8rem', fontWeight: 600, color: '#7a4020' }}>Phone Number</label>
+            <input style={inputStyle} value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+
+            <label style={{ fontSize: '.8rem', fontWeight: 600, color: '#7a4020' }}>Address Line</label>
+            <input style={inputStyle} value={form.addressLine} onChange={e => setForm(f => ({ ...f, addressLine: e.target.value }))} />
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '.8rem', fontWeight: 600, color: '#7a4020' }}>City</label>
+                <input style={inputStyle} value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} />
+              </div>
+              <div>
+                <label style={{ fontSize: '.8rem', fontWeight: 600, color: '#7a4020' }}>Pincode</label>
+                <input style={inputStyle} value={form.pincode} onChange={e => setForm(f => ({ ...f, pincode: e.target.value }))} />
+              </div>
+            </div>
+
+            <label style={{ fontSize: '.8rem', fontWeight: 600, color: '#7a4020' }}>State</label>
+            <input style={inputStyle} value={form.state} onChange={e => setForm(f => ({ ...f, state: e.target.value }))} />
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              <button
+                onClick={() => setShowModal(false)}
+                style={{ flex: 1, padding: '10px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                style={{ flex: 1, padding: '10px', borderRadius: 8, border: 'none', background: '#8B1A1A', color: '#fff', fontWeight: 600, cursor: saving ? 'wait' : 'pointer' }}
+              >
+                {saving ? 'Saving...' : 'Save Address'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteId && (
+        <div
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', zIndex: 10000,
+          }}
+        >
+          <div style={{ background: '#fff', width: '90vw', maxWidth: 400, padding: 30, borderRadius: 18, textAlign: 'center' }}>
+            <div style={{ fontSize: 50, marginBottom: 10 }}>⚠️</div>
+            <h2 style={{ color: '#3D0000' }}>Delete Address?</h2>
+            <p style={{ color: '#666', marginTop: 10, marginBottom: 25 }}>This cannot be undone.</p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
+              <button
+                onClick={() => setDeleteId(null)}
+                style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid #ddd', background: '#fff', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: '#dc2626', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
 
 // ── AppInner ──────────────────────────────────────────────────────
 function AppInner({ page, setPage }) {
@@ -1551,7 +1833,19 @@ const [profile, setProfile] = useState({
   window.addEventListener('require-login', handler)
   return () => window.removeEventListener('require-login', handler)
 }, [])
-  const { clearCart, grandTotal } = useCart()
+  const { clearCart, grandTotal, applyCoupon } = useCart()
+  const [coupons, setCoupons] = useState([])
+  const [couponMsg, setCouponMsg] = useState({ code: '', text: '', ok: false })
+
+  useEffect(() => {
+    fetch('https://puji-home-foods.onrender.com/api/coupons')
+      .then(res => res.json())
+      .then(data => {
+        const active = data.filter(c => c.status === 'Active' && new Date(c.validTill) >= new Date())
+        setCoupons(active)
+      })
+      .catch(() => setCoupons([]))
+  }, [])
 
   const filteredProducts = products.filter((product) => {
     const matchesCategory =
@@ -1860,149 +2154,7 @@ if (page === 'wishlist') {
   )
 }
 if (page === 'addresses') {
-  const isMobile = window.innerWidth <= 768
-  const addressCardStyle = {
-    background: '#fff',
-    padding: isMobile ? '20px' : '25px',
-    borderRadius: '16px',
-    boxShadow: '0 4px 15px rgba(0,0,0,.08)',
-    border: '1px solid #f0e6d3',
-  }
-  const actionBtnStyle = {
-    padding: '8px 16px',
-    borderRadius: '8px',
-    fontSize: '.82rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    border: '1.5px solid rgba(139,26,26,.25)',
-    background: 'transparent',
-    color: '#8B1A1A',
-    transition: 'all .2s',
-  }
-  const deleteBtnStyle = {
-    ...actionBtnStyle,
-    border: '1.5px solid rgba(220,38,38,.3)',
-    color: '#dc2626',
-  }
-
-  return (
-    <>
-      <Navbar page={page} setPage={setPage} onCartClick={() => setPage('cart')} />
-
-      <div
-        style={{
-          minHeight: '100vh',
-          padding: isMobile ? '100px 20px 40px' : '120px 40px',
-          background: '#F5ECD7',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            justifyContent: 'space-between',
-            alignItems: isMobile ? 'flex-start' : 'center',
-            gap: isMobile ? '16px' : '0',
-            marginBottom: '25px',
-          }}
-        >
-          <h1 style={{ color: '#3D0000', fontSize: isMobile ? '1.8rem' : '2.2rem', margin: 0 }}>
-            Saved Addresses
-          </h1>
-
-          <button
-            onClick={() => setPage('portal')}
-            style={{
-              background: '#8B1A1A',
-              color: '#fff',
-              border: 'none',
-              padding: '10px 18px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: 600,
-              alignSelf: isMobile ? 'flex-start' : 'center',
-            }}
-          >
-            ← Back to Portal
-          </button>
-        </div>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit,minmax(350px,1fr))',
-            gap: '20px',
-          }}
-        >
-          {/* Home Address */}
-          <div style={addressCardStyle}>
-            <h3 style={{ color: '#3D0000', marginBottom: '10px', fontSize: '1.1rem' }}>🏠 Home</h3>
-
-            <p style={{ margin: '0 0 4px', fontWeight: 700, color: '#1a0400' }}>Sneha</p>
-
-            <p style={{ margin: '0 0 8px', color: '#5a2e10', lineHeight: 1.6, fontSize: '.9rem' }}>
-              H.No 1-23, Near Bus Stand, Siddipet, Telangana - 502103
-            </p>
-
-            <p style={{ margin: 0, color: '#5a2e10', fontSize: '.9rem' }}>📞 +91 98765 43210</p>
-
-            <div
-              style={{
-                display: 'flex',
-                gap: '10px',
-                marginTop: '16px',
-              }}
-            >
-              <button style={actionBtnStyle}>Edit</button>
-              <button style={deleteBtnStyle}>Delete</button>
-            </div>
-          </div>
-
-          {/* Office Address */}
-          <div style={addressCardStyle}>
-            <h3 style={{ color: '#3D0000', marginBottom: '10px', fontSize: '1.1rem' }}>🏢 Office</h3>
-
-            <p style={{ margin: '0 0 4px', fontWeight: 700, color: '#1a0400' }}>Sneha</p>
-
-            <p style={{ margin: '0 0 8px', color: '#5a2e10', lineHeight: 1.6, fontSize: '.9rem' }}>
-              HITEC City, Hyderabad, Telangana - 500081
-            </p>
-
-            <p style={{ margin: 0, color: '#5a2e10', fontSize: '.9rem' }}>📞 +91 98765 43210</p>
-
-            <div
-              style={{
-                display: 'flex',
-                gap: '10px',
-                marginTop: '16px',
-              }}
-            >
-              <button style={actionBtnStyle}>Edit</button>
-              <button style={deleteBtnStyle}>Delete</button>
-            </div>
-          </div>
-        </div>
-
-        <button
-          style={{
-            marginTop: '30px',
-            width: isMobile ? '100%' : 'auto',
-            background: '#8B1A1A',
-            color: '#fff',
-            border: 'none',
-            padding: '13px 22px',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            fontWeight: 600,
-            fontSize: '.95rem',
-            boxShadow: '0 4px 14px rgba(139,26,26,.25)',
-          }}
-        >
-          + Add New Address
-        </button>
-      </div>
-    </>
-  )
+  return <AddressesPage setPage={setPage} user={user} />
 }
 if (page === 'settings') {
   return (
@@ -2021,6 +2173,18 @@ if (page === 'settings') {
 }
  
 if (page === 'trackorder') {
+  const isMobile = window.innerWidth <= 768
+
+  const steps = [
+    { icon: '✅', label: 'Placed',           tone: 'green' },
+    { icon: '✅', label: 'Packed',           tone: 'green' },
+    { icon: '✅', label: 'Shipped',          tone: 'green' },
+    { icon: '🚚', label: 'Out for Delivery', tone: 'gold'  },
+    { icon: '📦', label: 'Delivered',        tone: 'grey'  },
+  ]
+  const barColor = { green: 'green', gold: '#C9A84C', grey: '#ddd' }
+  const bgColor  = { green: '#EAF7EC', gold: '#FBF1DC', grey: '#F2F2F2' }
+
   return (
     <>
       <Navbar page={page} setPage={setPage} onCartClick={() => setPage('cart')} />
@@ -2028,184 +2192,174 @@ if (page === 'trackorder') {
       <div
         style={{
           minHeight: '100vh',
-          padding: '120px 40px',
+          padding: isMobile ? '100px 16px 40px' : '120px 40px',
           background: '#F5ECD7',
         }}
       >
         <div
-  style={{
-    maxWidth: '900px',
-    margin: '0 auto 30px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  }}
->
-  <h1
-    style={{
-      margin: 0,
-      color: '#3D0000',
-    }}
-  >
-    Track Order
-  </h1>
+          style={{
+            maxWidth: '900px',
+            margin: '0 auto 24px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <h1 style={{ margin: 0, color: '#3D0000', fontSize: isMobile ? '1.5rem' : '2rem' }}>
+            Track Order
+          </h1>
 
-  <button
-    onClick={() => setPage('portal')}
-    style={{
-      background: '#8B1A1A',
-      color: '#fff',
-      border: 'none',
-      padding: '12px 20px',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      fontWeight: '600',
-    }}
-  >
-    ← Back to Portal
-  </button>
-</div>
-        
+          <button
+            onClick={() => setPage('portal')}
+            style={{
+              background: '#8B1A1A',
+              color: '#fff',
+              border: 'none',
+              padding: isMobile ? '10px 16px' : '12px 20px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: '600',
+              fontSize: isMobile ? '.85rem' : '1rem',
+            }}
+          >
+            ← Back to Portal
+          </button>
+        </div>
 
         <div
-  style={{
-    maxWidth: '900px',
-    margin: '0 auto',
-    background: '#fff',
-    borderRadius: '20px',
-    overflow: 'hidden',
-    boxShadow: '0 10px 30px rgba(0,0,0,.1)',
-  }}
->
-  {/* Header */}
-  <div
-    style={{
-      background: 'linear-gradient(135deg,#8B1A1A,#3D0000)',
-      color: '#fff',
-      padding: '25px',
-    }}
-  >
-    <h2 style={{ margin: 0 }}>
-      Order #PHF1023
-    </h2>
+          style={{
+            maxWidth: '900px',
+            margin: '0 auto',
+            background: '#fff',
+            borderRadius: isMobile ? '14px' : '20px',
+            overflow: 'hidden',
+            boxShadow: '0 10px 30px rgba(0,0,0,.1)',
+          }}
+        >
+          {/* Header */}
+          <div
+            style={{
+              background: 'linear-gradient(135deg,#8B1A1A,#3D0000)',
+              color: '#fff',
+              padding: isMobile ? '20px' : '25px',
+            }}
+          >
+            <h2 style={{ margin: 0, fontSize: isMobile ? '1.2rem' : '1.5rem' }}>
+              Order #PHF1023
+            </h2>
+            <p style={{ marginTop: '10px', marginBottom: '4px' }}>Prawns Pickle 500g</p>
+            <p style={{ margin: 0 }}>Expected Delivery: 7 June 2026</p>
+          </div>
 
-    <p style={{ marginTop: '10px' }}>
-      Prawns Pickle 500g
-    </p>
+          {/* Progress */}
+          <div style={{ padding: isMobile ? '24px 20px' : '40px' }}>
+            <h3
+              style={{
+                color: '#3D0000',
+                marginBottom: isMobile ? '20px' : '30px',
+                fontSize: isMobile ? '1.05rem' : '1.25rem',
+              }}
+            >
+              Delivery Progress
+            </h3>
 
-    <p>
-      Expected Delivery: 7 June 2026
-    </p>
-  </div>
+            {isMobile ? (
+              <div style={{ marginBottom: '30px' }}>
+                {steps.map((s, i) => (
+                  <div key={s.label} style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <div
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: '50%',
+                          background: bgColor[s.tone],
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '18px',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {s.icon}
+                      </div>
+                      {i < steps.length - 1 && (
+                        <div style={{ width: '3px', height: '32px', background: barColor[s.tone] }} />
+                      )}
+                    </div>
+                    <p style={{ margin: '8px 0 0', fontWeight: 600, color: '#3D0000', fontSize: '.9rem' }}>
+                      {s.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '40px',
+                }}
+              >
+                {steps.map((s, i) => (
+                  <div key={s.label} style={{ display: 'contents' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '30px' }}>{s.icon}</div>
+                      <p style={{ whiteSpace: 'nowrap', fontSize: '.85rem' }}>{s.label}</p>
+                    </div>
+                    {i < steps.length - 1 && (
+                      <div
+                        style={{
+                          flex: 1,
+                          height: '4px',
+                          background: barColor[s.tone],
+                          margin: '0 4px',
+                        }}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
 
-  {/* Progress */}
-  <div
-    style={{
-      padding: '40px',
-    }}
-  >
-    <h3
-      style={{
-        color: '#3D0000',
-        marginBottom: '30px',
-      }}
-    >
-      Delivery Progress
-    </h3>
+            <div
+              style={{
+                background: '#F8F8F8',
+                padding: isMobile ? '16px' : '20px',
+                borderRadius: '12px',
+                marginBottom: '20px',
+              }}
+            >
+              <h4 style={{ margin: '0 0 8px' }}>Delivery Address</h4>
+              <p style={{ margin: 0 }}>
+                Sneha <br />
+                Siddipet, Telangana <br />
+                502103
+              </p>
+            </div>
 
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '40px',
-      }}
-    >
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '30px' }}>✅</div>
-        <p>Placed</p>
-      </div>
-
-      <div style={{ flex: 1, height: '4px', background: 'green' }} />
-
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '30px' }}>✅</div>
-        <p>Packed</p>
-      </div>
-
-      <div style={{ flex: 1, height: '4px', background: 'green' }} />
-
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '30px' }}>✅</div>
-        <p>Shipped</p>
-      </div>
-
-      <div style={{ flex: 1, height: '4px', background: '#C9A84C' }} />
-
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '30px' }}>🚚</div>
-        <p>Out for Delivery</p>
-      </div>
-
-      <div style={{ flex: 1, height: '4px', background: '#ddd' }} />
-
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '30px' }}>📦</div>
-        <p>Delivered</p>
-      </div>
-    </div>
-
-    {/* Address */}
-    <div
-      style={{
-        background: '#F8F8F8',
-        padding: '20px',
-        borderRadius: '12px',
-        marginBottom: '20px',
-      }}
-    >
-      <h4>Delivery Address</h4>
-
-      <p>
-        Sneha <br />
-        Siddipet, Telangana <br />
-        502103
-      </p>
-    </div>
-
-    {/* Support */}
-    <div
-      style={{
-        background: '#FFF8E8',
-        padding: '20px',
-        borderRadius: '12px',
-      }}
-    >
-      <h4>Need Help?</h4>
-
-      <p>
-        Contact our support team regarding this order.
-      </p>
-
-      <button
-        style={{
-          background: '#8B1A1A',
-          color: '#fff',
-          border: 'none',
-          padding: '10px 20px',
-          borderRadius: '8px',
-          cursor: 'pointer',
-        }}
-      >
-        Contact Support
-      </button>
-    </div>
-  </div>
-</div>
-
-        <br />
-
-        
+            <div style={{ background: '#FFF8E8', padding: isMobile ? '16px' : '20px', borderRadius: '12px' }}>
+              <h4 style={{ margin: '0 0 8px' }}>Need Help?</h4>
+              <p style={{ margin: '0 0 12px' }}>Contact our support team regarding this order.</p>
+              <button
+                style={{
+                  background: '#8B1A1A',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  width: isMobile ? '100%' : 'auto',
+                }}
+              >
+                Contact Support
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </>
   )
@@ -2330,6 +2484,18 @@ if (page === 'support') {
 }
 
 if (page === 'offers') {
+  const isMobile = window.innerWidth <= 768
+
+  const fallbackImgs = [IMG.boneChicken, IMG.prawns, IMG.mutton]
+
+  const handleApply = async (code) => {
+    const result = await applyCoupon(code)
+    setCouponMsg({ code, text: result.message, ok: result.success })
+    if (result.success) {
+      setTimeout(() => setPage('cart'), 900)
+    }
+  }
+
   return (
     <>
       <Navbar page={page} setPage={setPage} onCartClick={() => setPage('cart')} />
@@ -2337,97 +2503,33 @@ if (page === 'offers') {
       <div
         style={{
           minHeight: '100vh',
-          padding: '120px 40px',
-          background:
-  'linear-gradient(135deg,#FFF8E8,#F5ECD7,#FFF3D6)',
+          padding: isMobile ? '100px 16px 40px' : '120px 40px',
+          background: 'linear-gradient(135deg,#FFF8E8,#F5ECD7,#FFF3D6)',
         }}
       >
-        <div
-  style={{
-    position: 'fixed',
-    top: '120px',
-    left: '50px',
-    fontSize: '50px',
-    opacity: '.08',
-    pointerEvents: 'none',
-  }}
->
-  🎁
-</div>
+        {!isMobile && (
+          <>
+            <div style={{ position: 'fixed', top: '120px', left: '50px', fontSize: '50px', opacity: '.08', pointerEvents: 'none' }}>🎁</div>
+            <div style={{ position: 'fixed', top: '220px', right: '80px', fontSize: '60px', opacity: '.08', pointerEvents: 'none' }}>🎉</div>
+            <div style={{ position: 'fixed', bottom: '100px', left: '100px', fontSize: '55px', opacity: '.08', pointerEvents: 'none' }}>🎊</div>
+          </>
+        )}
 
-<div
-  style={{
-    position: 'fixed',
-    top: '220px',
-    right: '80px',
-    fontSize: '60px',
-    opacity: '.08',
-    pointerEvents: 'none',
-  }}
->
-  🎉
-</div>
-
-<div
-  style={{
-    position: 'fixed',
-    bottom: '100px',
-    left: '100px',
-    fontSize: '55px',
-    opacity: '.08',
-    pointerEvents: 'none',
-  }}
->
-  🎊
-</div>
-        <div
-          style={{
-            maxWidth: '1000px',
-            margin: '0 auto',
-          }}
-        >
+        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+          {/* Header row */}
           <div
             style={{
               display: 'flex',
+              flexWrap: 'wrap',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '30px',
+              gap: '12px',
+              marginBottom: isMobile ? '20px' : '30px',
             }}
           >
-            <h1 style={{ color: '#3D0000' }}>
+            <h1 style={{ color: '#3D0000', margin: 0, fontSize: isMobile ? '1.5rem' : '2rem' }}>
               Offers & Coupons
             </h1>
-            <div
-  style={{
-    background:
-      'linear-gradient(135deg,#8B1A1A,#3D0000)',
-    color: '#fff',
-    borderRadius: '20px',
-    padding: '40px',
-    marginBottom: '30px',
-    textAlign: 'center',
-    boxShadow: '0 10px 25px rgba(0,0,0,.15)',
-  }}
->
-  <h1
-    style={{
-      margin: 0,
-      fontSize: '42px',
-    }}
-  >
-    🎉 Exclusive Offers
-  </h1>
-
-  <p
-    style={{
-      marginTop: '15px',
-      fontSize: '18px',
-      color: '#F5ECD7',
-    }}
-  >
-    Save More On Your Favorite Pickles
-  </p>
-</div>
 
             <button
               onClick={() => setPage('portal')}
@@ -2435,87 +2537,106 @@ if (page === 'offers') {
                 background: '#8B1A1A',
                 color: '#fff',
                 border: 'none',
-                padding: '12px 20px',
+                padding: isMobile ? '10px 16px' : '12px 20px',
                 borderRadius: '8px',
                 cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: isMobile ? '.85rem' : '1rem',
               }}
             >
               ← Back to Portal
             </button>
           </div>
 
+          {/* Hero banner — its own section now */}
+          <div
+            style={{
+              background: 'linear-gradient(135deg,#8B1A1A,#3D0000)',
+              color: '#fff',
+              borderRadius: isMobile ? '16px' : '20px',
+              padding: isMobile ? '28px 20px' : '40px',
+              marginBottom: isMobile ? '24px' : '30px',
+              textAlign: 'center',
+              boxShadow: '0 10px 25px rgba(0,0,0,.15)',
+            }}
+          >
+            <h1 style={{ margin: 0, fontSize: isMobile ? '1.7rem' : '2.6rem' }}>
+              🎉 Exclusive Offers
+            </h1>
+            <p style={{ marginTop: '15px', fontSize: isMobile ? '.95rem' : '18px', color: '#F5ECD7' }}>
+              Save More On Your Favorite Pickles
+            </p>
+          </div>
+
+          {/* Coupon cards */}
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))',
-              gap: '20px',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit,minmax(280px,1fr))',
+              gap: isMobile ? '16px' : '20px',
             }}
           >
-            {[
-  {
-    code: 'PUJI10',
-    discount: '10% OFF',
-    min: 'Minimum Order ₹999',
-    image: IMG.boneChicken,
-  },
-  {
-
-    code: 'FREESHIP',
-    discount: 'FREE DELIVERY',
-    min: 'Minimum Order ₹499',
-    image: '/images/prawnspickle.webp',   
-  },
-  {
-    code: 'WELCOME20',
-    discount: '20% OFF',
-    min: 'New Customers',
-    image: '/images/MuttonPickle.jpg',
-  },
-].map((coupon) => (
-              <div
-                key={coupon.code}
-                style={{
-                  background: '#fff',
-                  padding: '25px',
-                  borderRadius: '16px',
-                  boxShadow: '0 8px 25px rgba(0,0,0,.12)',
-transition: 'all .3s ease',
-cursor: 'pointer',
-                }}
-              >
-                <img
-  src={coupon.image}
-  alt={coupon.code}
-  style={{
-    width: '100%',
-    height: '180px',
-    objectFit: 'cover',
-    borderRadius: '12px',
-    marginBottom: '15px',
-  }}
-/>
-                <h2 style={{ color: '#8B1A1A' }}>
-                  {coupon.code}
-                </h2>
-
-                <h3>{coupon.discount}</h3>
-
-                <p>{coupon.min}</p>
-
-                <button
+            {coupons.length === 0 ? (
+              <div style={{ background: '#fff', padding: '30px', borderRadius: '16px', textAlign: 'center', gridColumn: '1/-1', color: '#9a6040' }}>
+                No active offers right now — check back soon!
+              </div>
+            ) : (
+              coupons.map((coupon, i) => (
+                <div
+                  key={coupon._id}
                   style={{
-                    background: '#8B1A1A',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '10px 18px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
+                    background: '#fff',
+                    padding: isMobile ? '18px' : '25px',
+                    borderRadius: '16px',
+                    boxShadow: '0 8px 25px rgba(0,0,0,.12)',
                   }}
                 >
-                  Apply Coupon
-                </button>
-              </div>
-            ))}
+                  <img
+                    src={fallbackImgs[i % fallbackImgs.length]}
+                    alt={coupon.code}
+                    style={{
+                      width: '100%',
+                      height: isMobile ? '150px' : '180px',
+                      objectFit: 'cover',
+                      borderRadius: '12px',
+                      marginBottom: '15px',
+                      display: 'block',
+                    }}
+                  />
+                  <h2 style={{ color: '#8B1A1A', margin: '0 0 4px', fontSize: isMobile ? '1.1rem' : '1.3rem' }}>
+                    {coupon.code}
+                  </h2>
+                  <h3 style={{ margin: '0 0 6px', fontSize: isMobile ? '1rem' : '1.1rem' }}>
+                    {coupon.type === 'Percentage' ? `${coupon.discount}% OFF` : `₹${coupon.discount} OFF`}
+                  </h3>
+                  <p style={{ margin: '0 0 14px', color: '#7a4020', fontSize: '.88rem' }}>
+                    {coupon.minOrder > 0 ? `Minimum Order ₹${coupon.minOrder}` : 'No minimum order'}
+                  </p>
+
+                  <button
+                    onClick={() => handleApply(coupon.code)}
+                    style={{
+                      background: '#8B1A1A',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '10px 18px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      width: isMobile ? '100%' : 'auto',
+                      fontWeight: 600,
+                    }}
+                  >
+                    Apply Coupon
+                  </button>
+
+                  {couponMsg.code === coupon.code && (
+                    <p style={{ margin: '8px 0 0', fontSize: '.82rem', fontWeight: 600, color: couponMsg.ok ? '#16A34A' : '#DC2626' }}>
+                      {couponMsg.text}
+                    </p>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

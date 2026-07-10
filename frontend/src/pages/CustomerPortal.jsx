@@ -27,7 +27,6 @@ export default function CustomerPortal({ setPage, wishlist }) {
 const [cancelOrderId, setCancelOrderId] = useState(null)
 const [rating, setRating] = useState(5)
 const [reviewText, setReviewText] = useState('')
-const [showSidebar, setShowSidebar] = useState(false)
 
   useEffect(() => {
     const userId = user?.id || user?._id
@@ -115,7 +114,7 @@ const submitReview = async (product) => {
 
           {/* ── Sidebar ── */}
           <div
-  className={`portal-sidebar ${showSidebar ? "open" : ""}`}
+  className="portal-sidebar"
   style={{
     background:'linear-gradient(180deg,#220000,#4d0000)',
     color:'#fff',
@@ -258,6 +257,7 @@ color:'#9a6040'
                   orders.slice(0, 5).map(order => (
   <div
     key={order._id}
+    className="order-row"
     onClick={() => setSelectedOrder(order)}
     style={{
       display: 'flex',
@@ -450,7 +450,8 @@ onClick={() => setPage(a.page)} style={{ padding: '12px 0', cursor: 'pointer', c
       onClick={(e) => e.stopPropagation()}
       style={{
         background: '#fff',
-        width: '700px',
+        width: '90vw',
+        maxWidth: '700px',
         maxHeight: '85vh',
         overflowY: 'auto',
         padding: '25px',
@@ -600,7 +601,8 @@ onClick={() => setPage(a.page)} style={{ padding: '12px 0', cursor: 'pointer', c
     <div
       style={{
         background: '#fff',
-        width: '420px',
+        width: '90vw',
+        maxWidth: '420px',
         padding: '30px',
         borderRadius: '18px',
         textAlign: 'center'

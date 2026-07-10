@@ -46,7 +46,7 @@ function getUserIdFromToken() {
 }
 
 export default function Checkout({ onBack, onSuccess, onFailure }) {
-  const { cart, grandTotal } = useCart()
+  const { cart, grandTotal, discountAmount, appliedCoupon, removeCoupon } = useCart()
   const { user } = useAuth()
   const [form, setForm]             = useState({ name:'', phone:'', pincode:'', address:'', city:'', state:'' })
   const [errors, setErrors]         = useState({})
@@ -102,6 +102,8 @@ export default function Checkout({ onBack, onSuccess, onFailure }) {
   price: item.finalPrice,
 })),
         totalAmount: grandTotal,
+        couponCode: appliedCoupon?.code || null,
+        discountAmount: discountAmount || 0,
        paymentMethod: paymentMethod,
 paymentStatus: paymentMethod === 'COD' ? 'Pending' : 'Paid',
 orderStatus: 'Pending',
@@ -201,6 +203,29 @@ orderStatus: 'Pending',
               )}
             </div>
           </div>
+          {appliedCoupon && (
+            <div style={{
+              marginTop: '1.2rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: '#EAF7EC',
+              border: '1px solid rgba(22,163,74,.3)',
+              borderRadius: 10,
+              padding: '10px 14px',
+            }}>
+              <span style={{ fontSize: '.85rem', color: '#16A34A', fontWeight: 600 }}>
+                {appliedCoupon.code} applied — ₹{discountAmount} off
+              </span>
+              <button
+                onClick={removeCoupon}
+                style={{ background: 'none', border: 'none', color: '#c0392b', fontSize: '.8rem', cursor: 'pointer', fontWeight: 600 }}
+              >
+                Remove
+              </button>
+            </div>
+          )}
+
           <div style={{ marginTop: '20px' }}>
   <h3 style={{ marginBottom: '10px' }}>Payment Method</h3>
 

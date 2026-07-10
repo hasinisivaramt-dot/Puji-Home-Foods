@@ -3,7 +3,7 @@ import { useCart } from '../context/CartContext'
 const C = { gold: '#C9A84C', goldL: '#E8C97A', crimson: '#8B1A1A', darkRed: '#6B0F0F', brown: '#2A1005' }
 
 export default function OrderSummary({ showItems = true, onCheckout, checkoutLabel = 'Proceed to Payment' }) {
-  const { cart, subtotal, deliveryCharge, grandTotal } = useCart()
+  const { cart, subtotal, deliveryCharge, grandTotal, discountAmount, appliedCoupon, removeCoupon } = useCart()
 
   return (
     <div style={{
@@ -50,6 +50,13 @@ export default function OrderSummary({ showItems = true, onCheckout, checkoutLab
           />
           {deliveryCharge > 0 && (
             <div style={{ fontSize: '.7rem', color: '#9a6040', marginTop: -4 }}>Free delivery on orders above ₹999</div>
+          )}
+          {appliedCoupon && discountAmount > 0 && (
+            <Row
+              label={`Coupon (${appliedCoupon.code})`}
+              value={`− ₹${discountAmount}`}
+              valueColor="#16A34A"
+            />
           )}
           <div style={{ height: 1, background: 'rgba(201,168,76,.15)', margin: '4px 0' }} />
           <Row label="Grand Total" value={`₹${grandTotal}`} bold />

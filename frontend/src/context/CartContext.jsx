@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext'
 const CartContext = createContext(null)
 
 const BASE = 'https://puji-home-foods.onrender.com/api/cart'
+const COUPON_URL = 'https://puji-home-foods.onrender.com/api/coupons'
 
 // ── Price utility ─────────────────────────────────────────────────
 export function calculatePrice(basePrice, weightGrams) {
@@ -76,6 +77,7 @@ export function CartProvider({ children }) {
   const { user } = useAuth()
   const [cart, dispatch] = useReducer(cartReducer, [])
   const [syncing, setSyncing] = useState(false)
+  const [appliedCoupon, setAppliedCoupon] = useState(null)
 
   // ── Load cart from backend when user logs in ──────────────────
   useEffect(() => {
@@ -177,9 +179,34 @@ export function CartProvider({ children }) {
   const increaseQuantity = (key) => dispatch({ type: 'INCREASE', payload: key })
   const decreaseQuantity = (key) => dispatch({ type: 'DECREASE', payload: key })
 
+  // ── Apply coupon ──────────────────────────────────────────────
+  const applyCoupon = async (code) => {
+    try {
+      const res = await fetch(COUPON_URL)
+      const data = await res.json()
+      if (!res.ok) return { success: false, message: 'Could not check coupon. Try again.' }
+
+      const match = data.find(c => c.code.toUpperCase() === code.trim().toUpperCase())
+      if (!match) return { success: false, message: 'Invalid coupon code' }
+      if (match.status !== 'Active') return { success: false, message: 'This coupon is no longer active' }
+      if (new Date(match.validTill) < new Date()) return { success: false, message: 'This coupon has expired' }
+      if (match.usageLimit && match.used >= match.usageLimit) return { success: false, message: 'This coupon has reached its usage limit' }
+      if (subtotal < match.minOrder) return { success: false, message: `Add ₹${match.minOrder - subtotal} more to use this coupon` }
+
+      setAppliedCoupon(match)
+      return { success: true, message: 'Coupon applied!' }
+    } catch (err) {
+      console.error('Apply coupon failed:', err)
+      return { success: false, message: 'Something went wrong. Try again.' }
+    }
+  }
+
+  const removeCoupon = () => setAppliedCoupon(null)
+
   // ── Clear cart (on order success) ─────────────────────────────
   const clearCart = async () => {
     dispatch({ type: 'CLEAR' })
+    setAppliedCoupon(null)
     // Delete all items from backend
     if (!user?.id) return
     try {
@@ -199,12 +226,23 @@ export function CartProvider({ children }) {
   const totalItems     = cart.reduce((s, i) => s + i.quantity, 0)
   const subtotal       = cart.reduce((s, i) => s + i.subtotal, 0)
   const deliveryCharge = subtotal > 0 ? (subtotal >= 999 ? 0 : 80) : 0
-  const grandTotal     = subtotal + deliveryCharge
+
+  let discountAmount = 0
+  if (appliedCoupon && subtotal >= appliedCoupon.minOrder) {
+    discountAmount = appliedCoupon.type === 'Percentage'
+      ? Math.round((subtotal * appliedCoupon.discount) / 100)
+      : appliedCoupon.discount
+    discountAmount = Math.min(discountAmount, subtotal)
+  }
+
+  const grandTotal = subtotal + deliveryCharge - discountAmount
 
   return (
     <CartContext.Provider value={{
-      cart, totalItems, subtotal, deliveryCharge, grandTotal, syncing,
+      cart, totalItems, subtotal, deliveryCharge, discountAmount, appliedCoupon,
+      grandTotal, syncing,
       addToCart, removeFromCart, increaseQuantity, decreaseQuantity, clearCart,
+      applyCoupon, removeCoupon,
     }}>
       {children}
     </CartContext.Provider>

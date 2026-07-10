@@ -20,7 +20,7 @@ export default function Cart({ onCheckout, onContinue }) {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 2rem 4rem', display: 'grid', gridTemplateColumns: cart.length === 0 ? '1fr' : '1fr 360px', gap: '2rem', alignItems: 'start' }}>
+      <div className="cart-grid" style={{ maxWidth: 1100, margin: '0 auto', padding: window.innerWidth <= 768 ? '0 1rem 4rem' : '0 2rem 4rem', display: 'grid', gridTemplateColumns: cart.length === 0 ? '1fr' : (window.innerWidth <= 768 ? '1fr' : '1fr 360px'), gap: '2rem', alignItems: 'start' }}>
         {cart.length === 0 ? (
           <EmptyCart onContinue={onContinue} />
         ) : (
