@@ -166,8 +166,8 @@ export function DataTable({ columns, data, loading }) {
       <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'.82rem' }}>
         <thead>
           <tr style={{ background:'rgba(201,168,76,.08)', borderBottom:'1px solid rgba(201,168,76,.2)' }}>
-            {columns.map(c => (
-              <th key={c.key} style={{ padding:'11px 14px', textAlign:'left', fontWeight:700, color:'#5a2e10', fontSize:'.75rem', letterSpacing:'.5px', textTransform:'uppercase', whiteSpace:'nowrap' }}>{c.label}</th>
+            {columns.map((c, ci) => (
+              <th key={`${c.key}-${ci}`} style={{ padding:'11px 14px', textAlign:'left', fontWeight:700, color:'#5a2e10', fontSize:'.75rem', letterSpacing:'.5px', textTransform:'uppercase', whiteSpace:'nowrap' }}>{c.label}</th>
             ))}
           </tr>
         </thead>
@@ -177,8 +177,8 @@ export function DataTable({ columns, data, loading }) {
               onMouseEnter={e => e.currentTarget.style.background='rgba(201,168,76,.04)'}
               onMouseLeave={e => e.currentTarget.style.background='transparent'}
             >
-              {columns.map(c => (
-                <td key={c.key} style={{ padding:'11px 14px', color:'#1a0400', verticalAlign:'middle', whiteSpace: c.wrap ? 'normal' : 'nowrap' }}>
+              {columns.map((c, ci) => (
+                <td key={`${c.key}-${ci}`} style={{ padding:'11px 14px', color:'#1a0400', verticalAlign:'middle', whiteSpace: c.wrap ? 'normal' : 'nowrap' }}>
                   {c.render ? c.render(row[c.key], row) : row[c.key]}
                 </td>
               ))}

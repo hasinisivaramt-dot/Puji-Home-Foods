@@ -1268,7 +1268,7 @@ function Contact() {
 }
 
 // ── Footer ────────────────────────────────────────────────────────
-function Footer() {
+function Footer({ setPage, setSelectedCategory }) {
   return (
     <footer id="footer" style={{ background: `linear-gradient(180deg,${C.brown} 0%,#080100 100%)`, borderTop: '1px solid rgba(201,168,76,.2)', position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg,transparent,${C.gold},${C.crimson},${C.gold},transparent)`, animation: 'shimmerLine 3s ease-in-out infinite' }} />
@@ -1296,11 +1296,26 @@ function Footer() {
         {/* Quick Links */}
         <div>
           <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.02rem', color: C.gold, marginBottom: '1.4rem', fontWeight: 700 }}>Quick Links</div>
-          {['Home','Categories','Best Sellers','Gallery','About Us','Contact'].map(l => (
-            <a key={l} href="#" style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', fontSize: '.84rem', color: 'rgba(240,230,208,.6)', marginBottom: '.65rem', transition: 'color .3s' }}
+          {[
+            { label: 'Home', id: 'home' },
+            { label: 'Categories', id: 'categories' },
+            { label: 'Best Sellers', id: 'best-sellers' },
+            { label: 'Gallery', id: 'gallery' },
+            { label: 'About Us', id: 'about-us' },
+            { label: 'Contact', id: 'contact' },
+          ].map(({ label, id }) => (
+            <a key={label} href={`#${id}`}
+              onClick={(e) => {
+                e.preventDefault()
+                setPage('home')
+                setTimeout(() => {
+                  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+                }, 100)
+              }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', fontSize: '.84rem', color: 'rgba(240,230,208,.6)', marginBottom: '.65rem', transition: 'color .3s', cursor: 'pointer' }}
               onMouseEnter={e => e.currentTarget.style.color = C.goldL}
               onMouseLeave={e => e.currentTarget.style.color = 'rgba(240,230,208,.6)'}
-            >› {l}</a>
+            >› {label}</a>
           ))}
         </div>
 
@@ -1308,7 +1323,21 @@ function Footer() {
         <div>
           <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.02rem', color: C.gold, marginBottom: '1.4rem', fontWeight: 700 }}>Categories</div>
           {['Veg Pickles','Non-Veg Pickles','Sweets','Hot & Snacks','Gift Packs','Combo Offers'].map(l => (
-            <a key={l} href="#" style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', fontSize: '.84rem', color: 'rgba(240,230,208,.6)', marginBottom: '.65rem', transition: 'color .3s' }}
+  <a
+    key={l}
+    href="#"
+    onClick={(e) => {
+      e.preventDefault()
+
+      setSelectedCategory(l)
+      setPage("products")
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      })
+    }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', fontSize: '.84rem', color: 'rgba(240,230,208,.6)', marginBottom: '.65rem', transition: 'color .3s', cursor: 'pointer' }}
               onMouseEnter={e => e.currentTarget.style.color = C.goldL}
               onMouseLeave={e => e.currentTarget.style.color = 'rgba(240,230,208,.6)'}
             >› {l}</a>
@@ -1814,7 +1843,10 @@ useEffect(() => {
   fetch('https://puji-home-foods.onrender.com/api/products')
     .then(res => res.json())
     .then(data => {
-  console.log(data[0])
+  console.log(data.map(p => ({
+  name: p.name,
+  category: p.category
+})))
   setProducts(data)
 })
     .catch(err => console.log(err))
@@ -1933,7 +1965,10 @@ const { wishlist } = useWishlist()
       <>
         <Navbar page={page} setPage={setPage} onCartClick={() => setPage('cart')} />
         <Wishlist setPage={setPage} onCheckout={handleCheckout} />
-        <Footer />
+        <Footer
+  setPage={setPage}
+  setSelectedCategory={setSelectedCategory}
+/>
         <BackTop />
       </>
     )
@@ -1990,8 +2025,13 @@ const { wishlist } = useWishlist()
   searchTerm={searchTerm}
   setSearchTerm={setSearchTerm}
   setPage={setPage}
+  selectedCategory={selectedCategory}
+  setSelectedCategory={setSelectedCategory}
 />
-        <Footer />
+        <Footer
+  setPage={setPage}
+  setSelectedCategory={setSelectedCategory}
+/>
         <BackTop />
       </>
     )
@@ -2652,7 +2692,12 @@ if (page === 'offers') {
       <SectionDivider />
       <AboutUs />
       <SectionDivider />
-      <Categories setSelectedCategory={setSelectedCategory} />
+      <Categories
+  setSelectedCategory={(category) => {
+    setSelectedCategory(category)
+    setPage("products")
+  }}
+/>
       <SectionDivider />
       <BestSellers
   setPage={setPage}
@@ -2666,7 +2711,10 @@ if (page === 'offers') {
       <Testimonials />
       <SectionDivider />
       <Contact />
-      <Footer />
+      <Footer
+  setPage={setPage}
+  setSelectedCategory={setSelectedCategory}
+/>
       <BackTop />
     </>
   )

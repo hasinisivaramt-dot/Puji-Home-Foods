@@ -3,9 +3,18 @@ import ProductCard from '../components/ProductCard'
 
 const C = { gold: '#C9A84C' }
 
-export default function Products({ searchTerm, setSearchTerm, setPage }) {
-  const [category, setCategory] = useState('All')
+export default function Products({
+  searchTerm,
+  setSearchTerm,
+  setPage,
+  selectedCategory,
+  setSelectedCategory
+}) {
+  const [category, setCategory] = useState(selectedCategory || "All")
   const [products, setProducts] = useState([])
+  useEffect(() => {
+  setCategory(selectedCategory || "All")
+}, [selectedCategory])
 
   useEffect(() => {
     fetch('https://puji-home-foods.onrender.com/api/products')
@@ -150,7 +159,13 @@ export default function Products({ searchTerm, setSearchTerm, setPage }) {
           {['All', 'Veg Pickles', 'Non-Veg Pickles', 'Sweets', 'Hot & Snacks'].map(item => (
             <button
               key={item}
-              onClick={() => setCategory(item)}
+              onClick={() => {
+  setCategory(item)
+
+  if (setSelectedCategory) {
+    setSelectedCategory(item)
+  }
+}}
               className={`filter-btn${category === item ? ' active' : ''}`}
             >
               {item}
