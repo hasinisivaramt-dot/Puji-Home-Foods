@@ -2384,19 +2384,29 @@ if (page === 'trackorder') {
             <div style={{ background: '#FFF8E8', padding: isMobile ? '16px' : '20px', borderRadius: '12px' }}>
               <h4 style={{ margin: '0 0 8px' }}>Need Help?</h4>
               <p style={{ margin: '0 0 12px' }}>Contact our support team regarding this order.</p>
-              <button
-                style={{
-                  background: '#8B1A1A',
-                  color: '#fff',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  width: isMobile ? '100%' : 'auto',
-                }}
-              >
-                Contact Support
-              </button>
+            <button
+  onClick={() => {
+    setPage('home')
+
+    setTimeout(() => {
+      document.getElementById('contact')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      })
+    }, 100)
+  }}
+  style={{
+    background: '#8B1A1A',
+    color: '#fff',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    width: isMobile ? '100%' : 'auto',
+  }}
+>
+  Contact Support
+</button>
             </div>
           </div>
         </div>
@@ -2423,30 +2433,32 @@ if (page === 'support') {
           }}
         >
           <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '30px',
-            }}
-          >
+  className="support-header"
+  style={{
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '30px',
+  }}
+>
             <h1 style={{ color: '#3D0000' }}>
               Help & Support
             </h1>
 
-            <button
-              onClick={() => setPage('portal')}
-              style={{
-                background: '#8B1A1A',
-                color: '#fff',
-                border: 'none',
-                padding: '12px 20px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-              }}
-            >
-              ← Back to Portal
-            </button>
+           <button
+  className="support-back-btn"
+  onClick={() => setPage('portal')}
+  style={{
+    background: '#8B1A1A',
+    color: '#fff',
+    border: 'none',
+    padding: '12px 20px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+  }}
+>
+  ← Back to Portal
+</button>
           </div>
 
           <div

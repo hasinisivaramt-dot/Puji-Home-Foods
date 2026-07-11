@@ -150,8 +150,24 @@ orderStatus: 'Pending',
         </div>
       </div>
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 2rem 4rem', display: 'grid', gridTemplateColumns: '1fr 360px', gap: '2rem', alignItems: 'start' }}>
-        <div style={{ background: 'white', borderRadius: 20, padding: '2rem', border: '1px solid rgba(201,168,76,.15)', boxShadow: '0 4px 20px rgba(0,0,0,.06)' }}>
+      <div
+  className="checkout-layout"
+  style={{
+    maxWidth: 1100,
+    margin: '0 auto',
+    padding: '0 2rem 4rem',
+    display: 'grid',
+    gridTemplateColumns: '1fr 360px',
+    gap: '2rem',
+    alignItems: 'start'
+  }}
+>
+  <div
+  className="shipping-card"
+  style={{
+    background: 'white',
+    borderRadius: 20,
+    padding: '2rem', border: '1px solid rgba(201,168,76,.15)', boxShadow: '0 4px 20px rgba(0,0,0,.06)' }}>
           <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.15rem', fontWeight: 700, color: '#1a0400', marginBottom: '1.8rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(201,168,76,.15)' }}>
             Shipping Information
           </div>
@@ -279,7 +295,9 @@ orderStatus: 'Pending',
           <style>{`@keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
         </div>
 
-        <OrderSummary showItems checkoutLabel={null} />
+       <div className="checkout-summary">
+  <OrderSummary showItems checkoutLabel={null} />
+</div>
       </div>
     </div>
   )

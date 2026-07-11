@@ -165,8 +165,37 @@ padding:'30px 40px',
 background:'#fff'
 }}>
 
-            <h1 style={{ color: C.maroon, fontSize: '1.7rem', marginBottom: 6 }}>⚙️ Settings</h1>
-            <p style={{ color: '#666', marginBottom: 35 }}>Manage your profile, security and preferences.</p>
+            <div
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "6px",
+    flexWrap: "wrap",
+    gap: "10px",
+  }}
+>
+  <h1
+    style={{
+      color: C.maroon,
+      fontSize: "1.7rem",
+      margin: 0,
+    }}
+  >
+    ⚙️ Settings
+  </h1>
+
+  <button
+    onClick={() => setPage("portal")}
+    className="back-portal-mobile"
+  >
+    ← Back to Portal
+  </button>
+</div>
+
+<p style={{ color: "#666", marginBottom: 35 }}>
+  Manage your profile, security and preferences.
+</p>
 
             {/* ── Profile Information ── */}
             <Section icon={<FaUser color={C.crimson} />} title="Profile Information">
